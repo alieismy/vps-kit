@@ -1,0 +1,15 @@
+__pycache__/
+*.py[cod]
+.venv/
+.tmp/
+build/
+dist/
+*.egg-info/
+.coverage
+api-token
+*.secret
+local-config*.json
+
+# 本机环境盘点与私有证据留存，不随公开源码分发。
+/doc/g0-local-inventory-and-lab-preparation-plan.md
+/doc/g0-preparation-review-20261025.md

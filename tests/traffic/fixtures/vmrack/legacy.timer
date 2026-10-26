@@ -1,0 +1,12 @@
+[Unit]
+Description=Run VMRack 3X-UI traffic reset every month on billing boundary
+
+[Timer]
+OnCalendar=*-*-10 09:50:00 Asia/Singapore
+AccuracySec=1s
+RandomizedDelaySec=0
+Persistent=false
+Unit=vmrack-3xui-traffic-reset.service
+
+[Install]
+WantedBy=timers.target

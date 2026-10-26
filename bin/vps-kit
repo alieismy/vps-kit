@@ -1,0 +1,13 @@
+#!/usr/bin/python3 -B
+"""源代码入口：在导入包之前关闭字节码写入，不需要 pip install。"""
+import sys
+from pathlib import Path
+
+sys.dont_write_bytecode = True
+if sys.version_info < (3, 11):
+    print('{"result":"FAIL","code":"PYTHON_311_REQUIRED"}')
+    raise SystemExit(2)
+sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
+from vps_kit.cli import main
+
+raise SystemExit(main())

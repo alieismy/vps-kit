@@ -1,0 +1,15 @@
+*.py text eol=lf
+*.json text eol=lf
+*.md text eol=lf
+*.toml text eol=lf
+*.sh text eol=lf
+*.service text eol=lf
+*.timer text eol=lf
+*.yml text eol=lf
+LICENSE text eol=lf
+bin/vps-kit text eol=lf
+.gitignore text eol=lf
+.gitattributes text eol=lf
+tests/traffic/fixtures/SHA256SUMS text eol=lf
+# 批准基线保留原始字节及其既有 SHA256，不转换换行。
+doc/vps-traffic-reset-tool-proposal.md -text

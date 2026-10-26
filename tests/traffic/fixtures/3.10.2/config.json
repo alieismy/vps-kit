@@ -1,0 +1,52 @@
+{
+  "schema_version": "vps-kit.traffic.config/v1",
+  "task_id": "00000000-0000-4000-8000-000000000001",
+  "revision": 1,
+  "host_id_sha256": "0000000000000000000000000000000000000000000000000000000000000000",
+  "panel_binding_id": "00000000-0000-4000-8000-000000000002",
+  "panel": {
+    "version": "3.10.2",
+    "url": "https://panel.example.invalid:8443/example",
+    "connect_address": "127.0.0.1",
+    "allow_loopback_http": false
+  },
+  "inbound": {
+    "id": 7,
+    "remark": "SYNTHETIC-Reality",
+    "listen": "",
+    "port": 443,
+    "protocol": "vless",
+    "quota_bytes": 268435456000,
+    "policy": "stop"
+  },
+  "clients": [
+    {
+      "record_id": 11,
+      "uuid": "00000000-0000-4000-8000-000000000011",
+      "email": "sample-a",
+      "quota_bytes": 161061273600,
+      "policy": "stop"
+    },
+    {
+      "record_id": 12,
+      "uuid": "00000000-0000-4000-8000-000000000012",
+      "email": "sample-b",
+      "quota_bytes": 107374182400,
+      "policy": "quota-recovery"
+    }
+  ],
+  "schedule": {
+    "day": 22,
+    "short_month": "not-applicable",
+    "time": "15:44:25",
+    "timezone": "America/Toronto",
+    "first_boundary_utc": "2027-01-22T20:44:25Z"
+  },
+  "provider": {
+    "amount": "500",
+    "unit": "GiB",
+    "model": "proxy-duplex-2",
+    "reserve_percent": 0,
+    "other_reserved_bytes": 0
+  }
+}

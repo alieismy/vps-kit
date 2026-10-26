@@ -1,0 +1,35 @@
+[Unit]
+Description=Reset VMRack 3X-UI client and inbound traffic counters
+Wants=network-online.target
+After=network-online.target x-ui.service
+Requires=x-ui.service
+StartLimitIntervalSec=300
+StartLimitBurst=3
+
+[Service]
+Type=oneshot
+User=root
+Group=root
+UMask=0077
+LoadCredential=api-token:/etc/vmrack-traffic-reset/api-token
+RuntimeDirectory=vmrack-traffic-reset
+RuntimeDirectoryMode=0700
+StateDirectory=vmrack-traffic-reset
+StateDirectoryMode=0700
+ExecStart=/usr/local/sbin/vmrack-3xui-traffic-reset --run
+Restart=on-failure
+RestartSec=30s
+NoNewPrivileges=true
+PrivateTmp=true
+PrivateDevices=true
+ProtectSystem=strict
+ProtectHome=true
+ProtectKernelTunables=true
+ProtectKernelModules=true
+ProtectKernelLogs=true
+ProtectControlGroups=true
+RestrictSUIDSGID=true
+RestrictRealtime=true
+LockPersonality=true
+MemoryDenyWriteExecute=true
+RestrictAddressFamilies=AF_UNIX AF_INET AF_INET6

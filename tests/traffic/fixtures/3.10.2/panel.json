@@ -1,0 +1,121 @@
+{
+  "fixture_kind": "SYNTHETIC",
+  "panel_version": "3.10.2",
+  "responses": {
+    "/panel/api/clients/get/sample-a": {
+      "success": true,
+      "obj": {
+        "client": {
+          "id": 11,
+          "uuid": "00000000-0000-4000-8000-000000000011",
+          "email": "sample-a",
+          "totalGB": 161061273600,
+          "enable": true,
+          "trafficReset": "never",
+          "trafficResetDay": 1,
+          "reset": 0,
+          "resetDay": 0,
+          "expiryTime": 0,
+          "resetWeekday": 0
+        },
+        "inboundIds": [
+          7
+        ]
+      }
+    },
+    "/panel/api/clients/traffic/sample-a": {
+      "success": true,
+      "obj": {
+        "email": "sample-a",
+        "total": 161061273600,
+        "enable": true,
+        "up": 123,
+        "down": 456,
+        "resetMax": 0,
+        "resetCount": 3,
+        "reset": 0,
+        "resetDay": 0,
+        "expiryTime": 0,
+        "resetWeekday": 0
+      }
+    },
+    "/panel/api/clients/get/sample-b": {
+      "success": true,
+      "obj": {
+        "client": {
+          "id": 12,
+          "uuid": "00000000-0000-4000-8000-000000000012",
+          "email": "sample-b",
+          "totalGB": 107374182400,
+          "enable": true,
+          "trafficReset": "never",
+          "trafficResetDay": 1,
+          "reset": 0,
+          "resetDay": 0,
+          "expiryTime": 0,
+          "resetWeekday": 0
+        },
+        "inboundIds": [
+          7
+        ]
+      }
+    },
+    "/panel/api/clients/traffic/sample-b": {
+      "success": true,
+      "obj": {
+        "email": "sample-b",
+        "total": 107374182400,
+        "enable": true,
+        "up": 123,
+        "down": 456,
+        "resetMax": 0,
+        "resetCount": 3,
+        "reset": 0,
+        "resetDay": 0,
+        "expiryTime": 0,
+        "resetWeekday": 0
+      }
+    },
+    "/panel/api/inbounds/list": {
+      "success": true,
+      "obj": [
+        {
+          "id": 7,
+          "remark": "SYNTHETIC-Reality",
+          "listen": "",
+          "port": 443,
+          "protocol": "vless",
+          "total": 268435456000,
+          "nodeId": null,
+          "enable": true,
+          "expiryTime": 0,
+          "trafficReset": "never",
+          "up": 1000,
+          "down": 2000,
+          "settings": {
+            "clients": [
+              {
+                "id": "00000000-0000-4000-8000-000000000011",
+                "email": "sample-a",
+                "totalGB": 161061273600,
+                "enable": true,
+                "reset": 0,
+                "expiryTime": 0,
+                "resetWeekday": 0
+              },
+              {
+                "id": "00000000-0000-4000-8000-000000000012",
+                "email": "sample-b",
+                "totalGB": 107374182400,
+                "enable": true,
+                "reset": 0,
+                "expiryTime": 0,
+                "resetWeekday": 0
+              }
+            ]
+          }
+        }
+      ]
+    }
+  }
+}
