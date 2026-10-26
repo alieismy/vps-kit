@@ -208,7 +208,7 @@ class NativeDeploymentBackend:
             require(set(self.prior) == {'config', 'manifest'}, 'LEGACY_PRIOR_INPUT')
             prior = {}
             for key, path in self.prior.items():
-                require(type(path) is str and path.startswith('/root/') and not Path(path).is_symlink(), 'LEGACY_PRIOR_PATH')
+                require(type(path) is str and path.startswith('/root/') and not self.fs.path(path).is_symlink(), 'LEGACY_PRIOR_PATH')
                 prior[key] = self.fs.read(path)
                 paths.append(path)
         images = {p: self.fs.image(p) for p in paths}

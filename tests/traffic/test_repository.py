@@ -7,6 +7,7 @@ import re
 import shutil
 import tempfile
 import unittest
+from unittest.mock import patch
 from urllib.parse import unquote
 import zipfile
 
@@ -89,7 +90,7 @@ class RepositoryTests(unittest.TestCase):
 
     def test_public_package_excludes_private_reports_and_has_complete_links(self):
         with tempfile.TemporaryDirectory() as tmp:
-            root = Path(tmp) / 'source'
+            root = (Path(tmp) / 'source').resolve()
             shutil.copytree(ROOT, root, ignore=shutil.ignore_patterns('.git', '.tmp', '.github', '__pycache__',
                                                                     'build', 'dist', '*.egg-info'))
             # 即使本地存在新的私有文档，也不能被 doc/ 通配选入公开包。
@@ -114,6 +115,17 @@ class RepositoryTests(unittest.TestCase):
                     member = resolved.resolve().relative_to(root).as_posix()
                     self.assertTrue(member in files or any(n.startswith(member + '/') for n in files),
                                     (name, target, 'target absent from package'))
+
+    def test_public_package_links_with_noncanonical_temp_root(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            hop = Path(tmp) / 'hop'
+            hop.mkdir()
+            alias = hop / '..'
+            self.assertTrue(alias.samefile(tmp))
+            # 实际路径别名触发与 Windows 临时短路径相同的边界比较，不模拟 resolve。
+            with patch.object(tempfile, 'TemporaryDirectory') as factory:
+                factory.return_value.__enter__.return_value = str(alias)
+                self.test_public_package_excludes_private_reports_and_has_complete_links()
 
     def test_legacy_manifest_without_publication_files_remains_readable(self):
         # 模型证明旧格式不强制补许可证；保留的真实历史 ZIP 另行离线复核。

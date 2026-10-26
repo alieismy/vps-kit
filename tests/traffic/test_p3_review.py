@@ -139,6 +139,46 @@ class ReviewTests(unittest.TestCase):
                     from vps_kit.traffic.legacy import STATE
                     self.assertEqual(fs.read(STATE + '/' + name), raw)
 
+    def test_prior_symlink_checks_use_injected_filesystem(self):
+        old = legacy_config()
+        cfg, fs, _, _, backend, _ = harness(self.root, target(old))
+        seed_legacy(fs, old)
+        backend.prior = {'config': '/root/prior/config', 'manifest': '/root/prior/manifest.json'}
+        expected = {key: ('SYNTHETIC_' + key).encode() for key in backend.prior}
+        for key, path in backend.prior.items():
+            fs.write(path, expected[key])
+        host_paths = {Path(p) for p in backend.prior.values()}
+        mapped_paths = {fs.path(p) for p in backend.prior.values()}
+        observed = set()
+        original = Path.is_symlink
+
+        def inspect(path):
+            if path in host_paths:
+                raise PermissionError('MODEL host /root must not be inspected')
+            observed.add(path)
+            return original(path)
+
+        with patch.object(Path, 'is_symlink', inspect):
+            source = backend.collect_r2(cfg)
+        self.assertEqual(source['prior'], expected)
+        self.assertTrue(mapped_paths <= observed)
+
+    def test_prior_symlink_in_injected_filesystem_is_rejected(self):
+        old = legacy_config()
+        cfg, fs, _, _, backend, _ = harness(self.root, target(old))
+        seed_legacy(fs, old)
+        backend.prior = {'config': '/root/prior/config', 'manifest': '/root/prior/manifest.json'}
+        for path in backend.prior.values():
+            fs.write(path, b'SYNTHETIC')
+        original = Path.is_symlink
+        for key in backend.prior:
+            linked = fs.path(backend.prior[key])
+            # 符号链接由既有模型显式注入，不依赖 Windows 创建链接的权限。
+            with self.subTest(key=key), patch.object(Path, 'is_symlink',
+                    lambda path: path == linked or original(path)):
+                with self.assertRaisesRegex(ContractError, 'LEGACY_PRIOR_PATH'):
+                    backend.collect_r2(cfg)
+
     def test_prior_nonobject_state_is_a_sanitized_contract_failure(self):
         old, v1 = legacy_config(), legacy_config(schema=1)
         cfg = target(old)
