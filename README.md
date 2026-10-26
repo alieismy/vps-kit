@@ -2,7 +2,14 @@
 
 面向 Linux VPS 的工具集，当前提供 **3X-UI 流量重置调度与迁移管理**。它将月账期或固定 30 天周期、对象身份、配额策略和执行历史绑定在一起，帮助维护者核对配置、管理调度并追踪异常。
 
-**当前版本：`0.4.0a3`，Alpha。** 当前阶段适合源码审阅、合成数据体验和本地开发验证。Debian 12/13、Ubuntu 24.04 上的真实 Linux/systemd、3X-UI API 写入及业务集成仍未验收，不能将本地测试结果视为生产可用承诺。公开源码和生成开发包也不等于已发布 GitHub Release。
+**当前版本：`0.4.0a3`，Alpha 开发版。** 已于 2026-10-26 发布 [v0.4.0a3 预发布](https://github.com/alieismy/vps-kit/releases/tag/v0.4.0a3)。当前阶段适合源码审阅、合成数据体验和本地开发验证。Debian 12/13、Ubuntu 24.04 上的真实 Linux/systemd、3X-UI API 写入及业务集成仍未验收，不能将本地测试结果视为生产可用承诺。
+
+## 预发布下载
+
+- [开发包：vps-kit-0.4.0a3-b93669c.zip](https://github.com/alieismy/vps-kit/releases/download/v0.4.0a3/vps-kit-0.4.0a3-b93669c.zip)
+- [SHA256 摘要：vps-kit-0.4.0a3-b93669c.zip.sha256](https://github.com/alieismy/vps-kit/releases/download/v0.4.0a3/vps-kit-0.4.0a3-b93669c.zip.sha256)
+
+上述附件固定对应提交 `b93669c50bd1e172761c69149c97727031705195`。校验方法、已验证范围及未验收边界见 [发布说明](https://github.com/alieismy/vps-kit/releases/tag/v0.4.0a3)。GitHub 自动生成的 `Source code` 归档是标签源码快照，与上述经过 manifest 校验的开发包不同。
 
 ## 主要能力
 
