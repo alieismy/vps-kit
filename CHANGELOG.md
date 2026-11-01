@@ -2,6 +2,18 @@
 
 本文件记录面向使用者的版本变化及发布状态。测试结果只对实际运行时对应的源码和环境有效。
 
+## 0.5.0a2 — 预发布，2026-11-01
+
+发布类型为 Alpha 开发版，标签 `v0.5.0a2`。来源提交、CI 与附件摘要见 [Release 与发布说明](https://github.com/alieismy/vps-kit/releases/tag/v0.5.0a2)；下载 [开发包 ZIP](https://github.com/alieismy/vps-kit/releases/download/v0.5.0a2/vps-kit-0.5.0a2.zip) 和 [SHA256 摘要](https://github.com/alieismy/vps-kit/releases/download/v0.5.0a2/vps-kit-0.5.0a2.zip.sha256)。
+
+- 在现有 CLI 文档中收录独立安装、版本升级、七地区候选 Target/SNI、当地 DNS 与固定 IP 复验、HTTP 检查、实际 REALITY 验收及结果记录，并更新文档索引。
+- 明确八组候选是单一美国出口的历史测量，各地区路径和实际 REALITY 仍待验证；保留 CDN、托管机房、IPv6、跳转和未通过候选的证据边界。
+- 补充受管 `traffic` 的计划、应用、检查、恢复和回退步骤，明确现场配置、计划摘要、保持暂停及失败停止条件。
+- 安装示例同步到本版本，包摘要从对应 Release 正文复制；拒绝覆盖已有版本目录，摘要失败时在解压前停止。
+- 除版本标识外，程序源码、依赖及业务逻辑与 `0.5.0a1` 相同。版本标识仍会改变整包程序摘要，已部署环境继续使用正常整包升级流程。
+
+本版本不新增地区实测或生产验收结论，不修改历史标签或附件，也不部署 VPS。最终提交的回归、回环和附件验证结果以本版本发布说明为准。
+
 ## 0.5.0a1 — 预发布，2026-11-01
 
 发布类型为 Alpha 开发版，标签 `v0.5.0a1`。来源提交、CI 与附件摘要见 [Release 与发布说明](https://github.com/alieismy/vps-kit/releases/tag/v0.5.0a1)；下载 [开发包 ZIP](https://github.com/alieismy/vps-kit/releases/download/v0.5.0a1/vps-kit-0.5.0a1.zip) 和 [SHA256 摘要](https://github.com/alieismy/vps-kit/releases/download/v0.5.0a1/vps-kit-0.5.0a1.zip.sha256)。

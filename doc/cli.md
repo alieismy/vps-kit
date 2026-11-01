@@ -1,6 +1,6 @@
 # CLI 参考
 
-当前版本为 `0.5.0a1`，Alpha 预发布。在仓库根目录使用 `python -B bin/vps-kit <工具> <动作>`，或在 Linux 中使用 `python3 -B`。查看具体参数：
+当前版本为 `0.5.0a2`，Alpha 预发布。在仓库根目录使用 `python -B bin/vps-kit <工具> <动作>`，或在 Linux 中使用 `python3 -B`。查看具体参数：
 
 ```powershell
 python -B bin/vps-kit traffic
@@ -103,29 +103,344 @@ HTTP 响应、重定向与实际 REALITY/Xray 连接始终标为 `NOT_TESTED`。
 
 ### 采用前人工复验
 
-1. 在拟采用的 VPS 上，从独立源码目录运行探针；记录系统、Python/OpenSSL 版本和时间。先用域名 Target 取得当地解析结果，再按具体的 `address`、端口和 SNI 阅读每条结果。`BASELINE_PASS` 只对该次配对有效；退出码 `1` 可能只是其中一个 IPv6 地址未完成，不能视为所有地址都失败。必要时用 `--target IP:PORT --sni NAME` 复验选中的配对。
-2. 对通过的配对，另行检查 HTTP 版本和跳转。以下为 Linux Bash 示例，保留域名和文档地址必须替换成同一条通过记录的真实 SNI、IPv4 和端口。它使用外部 curl，要求已有 curl 7.73.0+、OpenSSL 后端及 HTTP2 功能；这不是探针自身的运行依赖。
-
-   ```bash
-   sni='cover.example'
-   ip='192.0.2.10'
-   port=443
-   env -u SSLKEYLOGFILE curl -q --silent --show-error --head \
-     --http2 --tlsv1.3 --tls-max 1.3 --curves X25519 \
-     --noproxy '*' --proto '=https' --connect-timeout 5 --max-time 10 \
-     --resolve "${sni}:${port}:${ip}" --output /dev/null \
-     --write-out '%{json}\n' "https://${sni}:${port}/"
-   ```
-
-   `--resolve` 固定连接 IP，URL 主机名同时用于 TLS SNI、证书名称验证和 HTTP Host。检查 curl 退出状态、`remote_ip`、`ssl_verify_result=0` 及实际 `http_version=2`；仅写了 `--http2` 不表示协商成功。不要添加 `-k`。IPv6 需在 `--resolve` 的地址部分加方括号。
-3. 记录 `http_code` 和 `redirect_url`；命令不自动跟随跳转。同主机路径跳转可单独检查该路径，Target 始终是 `HOST:PORT`，不含 URL 路径；跨域名跳转应将新域名作为独立候选重新验证。HEAD 的 `403/405` 是应用层观察，不能倒推 TLS 不兼容，必要时另做有界 GET 核验。手工 HTTP 结果不改变原探针报告中的 `http=NOT_TESTED`。
-4. 在当地路径上复核候选的延迟和重复连接结果。机构地址、ASN 或 GeoIP 均不能单独证明物理机房城市，CDN/Anycast 的节点还可能随出口和解析变化。最后使用实际 Xray、客户端版本和指纹完成 REALITY 连接验证；短期 TLS/HTTP 成功不证明长期稳定性或抗封锁效果。
+按下文 [VPS 安装与七地区人工复验](#vps-安装与七地区人工复验)执行：独立目录安装 → 当地 DNS 逐地址探测 → 固定 IP/SNI 重复连接 → 独立 HTTP 检查 → 实际 Xray/客户端验收。每一步分别记录状态，不能用 TLS 通过替代后两步。安装/复验示例集中在该节，接口含义以上文为准。
 
 2026-11-01 的修复前快照已取得 Windows 本机测试，以及 Debian 13 / CPython 3.13.5 / OpenSSL 3.5.7 的运行与合成 TLS 回环证据；另从一个美国出口对 30 个命名域名做了有限候选研究，并使用外部 curl 检查部分 HTTP 行为。这些是限定环境与地址的测量，不是全部 DNS 地址、其他地区 VPS、实际 REALITY 或生产业务验收，也不作为修复后源码的公网复测记录。
 
 提前关闭分类修复后的完整离线回归在 Windows 下 210 项全部通过。合成 TLS 回环共 15 项：Windows / CPython 3.13.12 / OpenSSL 3.0.18 下 14 项通过、1 项因原生 IPv6 回环 TCP 不可用跳过；上述 Debian 13 环境下 15 项全部通过，包含 FIN、握手前 `close_notify`、RST 及 IPv6。既有 curl 回环的 12 次本机 GET 也通过。Debian 测试由 SSH 标准输入在内存中加载源码，只临时生成合成测试证书并清理，没有部署程序、变更系统信任库或生产配置。
 
-修复后的同一程序源码另于 2026-11-01 从上述美国出口完成 56 个命名域名的有限初筛，共 153 次探针连接尝试；其中 37 个域名至少一个 IPv4 通过。随后对选中的 8 组固定 IPv4/SNI 各作三轮复验，24/24 通过，并用独立 curl 检查同一配对的 HTTP 行为。该出口没有 IPv6 默认路由，相关 IPv6 未完成项不能视为网站不兼容；这些结果也不证明各地区实际路径、全部 DNS 地址、物理机房城市或真实 REALITY 连接。原始本机研究日志不随公开源码和发行包分发，不提供自动采用的候选名单。最终发布提交的 CI 与附件校验以 [发布说明](https://github.com/alieismy/vps-kit/releases/tag/v0.5.0a1) 为准。
+修复后的同一程序源码另于 2026-11-01 从上述美国出口完成 56 个命名域名的有限初筛，共 153 次探针连接尝试；其中 37 个域名至少一个 IPv4 通过。随后对选中的 8 组固定 IPv4/SNI 各作三轮复验，24/24 通过，并用独立 curl 检查同一配对的 HTTP 行为。该出口没有 IPv6 默认路由，相关 IPv6 未完成项不能视为网站不兼容；这些结果也不证明各地区实际路径、全部 DNS 地址、物理机房城市或真实 REALITY 连接。原始本机研究日志不随公开源码和发行包分发；下文只整理供人工复验的条件候选，不自动采用。最终发布提交的 CI 与附件校验以 [发布说明](https://github.com/alieismy/vps-kit/releases/tag/v0.5.0a1) 为准。
+
+## VPS 安装与七地区人工复验
+
+本节面向自行维护 VPS 的操作者，随 `v0.5.0a2` 提供，整理日期为 **2026-11-01**。历史 `v0.5.0a1` ZIP 保持原字节，不包含本节后补内容；本节没有改变 CLI、P3 契约或生产验收状态。命令使用下列明确版本，不自动追随未来版本。
+
+只检测 SNI 时，建议安装到当前用户的独立目录 `$HOME/vps-kit-probe/0.5.0a2`。探针不需要 root、面板 Token、pip 安装或 systemd 服务，不会修改现役 `traffic`、3X-UI 或 Xray；命令示例会下载文件、保存本地报告，并在明确探测时发起网络连接。若由 root 执行，默认目录为 `/root/vps-kit-probe/0.5.0a2`。
+
+| 现场情况 | 本节采用的操作 |
+|---|---|
+| 首次使用，只检测 SNI | 独立目录安装后直接运行 |
+| 旧版也是解压运行 | 保留旧目录，另装 `0.5.0a2`，改用新入口；回退时改回旧入口 |
+| 已有受管 `traffic`，此次只检测 SNI | 并行使用独立目录，不改变现役版本 |
+| 需要升级受管的整套工具 | 执行下文 P3 整包升级；禁止直接覆盖现役源码或手工切换 `current` |
+
+以下命令使用 **Linux Bash**，各代码块应按步骤运行；标明人工输入的步骤需要先阅读前一步报告。依赖安装示例适用于 Debian 12/13、Ubuntu 24.04，不能据此认为这些 OS 的真实 `traffic` 集成已经验收。
+
+### 1. 环境准备与独立安装
+
+先查看系统、UTC 时间、Python 实际链接的 OpenSSL 和 curl 功能。探针运行要求见前文；curl 只用于下载和独立 HTTP 复验，不是 Python 探针的运行依赖。
+
+```bash
+cat /etc/os-release
+date -u
+python3 -c 'import sys, ssl; print(sys.version); print(ssl.OPENSSL_VERSION); print("TLS1.3:", ssl.HAS_TLSv1_3, "ALPN:", ssl.HAS_ALPN)'
+curl --version
+```
+
+缺少依赖时，在 Debian/Ubuntu 以 root 执行以下命令；普通用户需由管理员准备。它不执行整机发行版升级，也不保证发行版提供的 Python/OpenSSL 组合必然满足探针能力检查。
+
+```bash
+apt-get update && apt-get install -y python3 ca-certificates curl
+```
+
+打开 [v0.5.0a2 发布页](https://github.com/alieismy/vps-kit/releases/tag/v0.5.0a2)，复制正文中的 **该版本 ZIP SHA256**，在下面提示时粘贴；不要使用历史版本摘要。命令下载两个命名附件，不用自动生成的 `Source code` 归档代替。摘要用于核对内容，不是数字签名。
+
+下面整段在子 shell 中执行，任一步失败即停止；已存在的版本目录不覆盖。校验文件采用 CRLF，检查前只规范化其换行，不改 ZIP。
+
+```bash
+(
+set -eu
+umask 077
+
+base="$HOME/vps-kit-probe"
+version='0.5.0a2'
+url='https://github.com/alieismy/vps-kit/releases/download/v0.5.0a2'
+dest="$base/$version"
+
+if [ -e "$dest" ] || [ -L "$dest" ]; then
+  printf '目录已存在，请先核对：%s\n' "$dest"
+  exit 1
+fi
+
+read -r -p '粘贴 v0.5.0a2 发布页的 ZIP SHA256：' sha
+if [[ ! "$sha" =~ ^[0-9a-f]{64}$ ]]; then
+  printf '需要发布页提供的 64 位小写十六进制摘要。\n' >&2
+  exit 1
+fi
+
+mkdir -p "$base/downloads/$version"
+cd "$base/downloads/$version"
+curl -q -fL "$url/vps-kit-$version.zip" -o "vps-kit-$version.zip"
+curl -q -fL "$url/vps-kit-$version.zip.sha256" -o "vps-kit-$version.zip.sha256"
+
+printf '%s  %s\n' "$sha" "vps-kit-$version.zip" | sha256sum -c -
+tr -d '\r' < "vps-kit-$version.zip.sha256" | sha256sum -c -
+
+stage=$(mktemp -d "$base/.unpack-$version.XXXXXX")
+python3 -B -m zipfile -e "vps-kit-$version.zip" "$stage"
+python3 -B "$stage/bin/vps-kit" traffic package-verify \
+  --package "$PWD/vps-kit-$version.zip" --expect-sha256 "$sha"
+python3 -B "$stage/bin/vps-kit" --version
+
+mv -T -- "$stage" "$dest"
+printf '入口：%s/bin/vps-kit\n' "$dest"
+)
+```
+
+预期两个摘要检查均为 `OK`，包校验返回 `PACKAGE_VALID`、`version=0.5.0a2`、`files=104`，版本命令输出 `0.5.0a2`。`traffic package-verify` 是只读包校验，不调用面板或 systemd。中途失败时保留下载文件和 `.unpack-*` 目录排查，不把它们视为安装成功，也不要覆盖现役目录重试。
+
+设置本次终端入口；新开 SSH 会话后需重新设置该变量：
+
+```bash
+kit="$HOME/vps-kit-probe/0.5.0a2/bin/vps-kit"
+python3 -B "$kit" --version
+python3 -B "$kit" reality probe --help
+```
+
+仅使用独立探针时，安装和升级到这里完成。不要为此执行第 7 节的受管部署事务。
+
+### 2. 七地区候选与证据状态
+
+以下为**历史观测，不是当前可用性承诺**。2026-11-01 07:26–07:32 UTC，从**同一个美国出口**使用 Debian 13 / CPython 3.13.5 / OpenSSL 3.5.7 检查候选。八组固定 IPv4/SNI 各三轮通过；独立 HTTP 观察为固定同一 IP/SNI 的 **HEAD**，不是产品自身发送的 HTTP 请求。
+
+当时使用修复后的开发包，包 SHA256 为 `5f451425be09d41238b6a1318cc988e022ee30b6f3c3a5d87eb65e8c664c1c2d`；发布核对已确认其程序源码与正式 `v0.5.0a1` 相同，包整体摘要因发布文档变化而不同。这个历史摘要不能用于校验正式下载附件。维护者保留原始测量与源码核对记录，公开文档只提供结果摘要，不包含测试 VPS 地址、SSH 信息或私有日志链接；外部读者应按本节独立复验。
+
+域名 Target 统一为该行 **SNI 加 `:443`**。固定 Target 只用于复现旧测量，采用前先使用当地 DNS，再从新报告中选择实际地址。不得跨行混用 IP 和 SNI。
+
+| 地区关联 | SNI | 历史固定 Target | 美国出口历史 TLS / HTTP HEAD | 当地路径状态与选择限制 |
+|---|---|---|---|---|
+| 洛杉矶 | `www.ipam.ucla.edu` | `128.97.46.8:443` | TLS 3/3；根路径 HTTP/2 200 | **待验证**；UCLA 自身网络，优先复验；物理机房城市未独立确认 |
+| 圣何塞 | `www.thegoldenstateacademy.com` | `199.34.228.151:443` | TLS 3/3；根路径 HTTP/2 200 | **待验证**；Weebly 托管，学校有 San Jose 教学点，不能据此定位机房 |
+| 哥伦布，俄亥俄州 | `www.osc.edu` | `23.185.0.4:443` | TLS 3/3；根路径 HTTP/2 200 | **待验证／条件备选**；Fastly CDN；坚持避开已识别 CDN 时不选此项 |
+| 新加坡 | `mirror.sg.gs` | `163.47.176.15:443` | TLS 3/3；根路径 HTTP/2 200 | **待验证**；新加坡镜像候选，AS58867 名称含 Anycast，不保证各出口同一机房 |
+| 东京 | `www.nii.ac.jp` | `153.120.132.42:443` | TLS 3/3；根路径 HTTP/2 200 | **待验证**；Sakura 托管，机构位于东京，机房城市未证实 |
+| 东京备选 | `www.s.u-tokyo.ac.jp` | `202.230.235.116:443` | TLS 3/3；根路径 HTTP/2 301；同主机 `/ja/` 为 HTTP/2 200 | **待验证**；IDC Frontier 托管；同主机路径跳转需明确接受 |
+| 法兰克福 | `www.uni-frankfurt.de` | `141.2.37.198:443` | TLS 3/3；根路径 HTTP/2 308；同主机 `/en` 为 HTTP/2 200 | **待验证**；大学自身网络；同主机路径跳转需明确接受 |
+| 伦敦 | `www.lse.ac.uk` | `185.18.139.150:443` | TLS 3/3；根路径 HTTP/2 200 | **待验证**；Zengenti 托管，不能据 LSE 地址确认伦敦机房 |
+
+八组配对的实际 REALITY 连接均为 **未验证**。历史出口没有 IPv6 默认路由；IPv6 未完成项不能证明目标不支持 IPv6。机构地址、ASN（自治系统编号）和 GeoIP 均不能单独证明服务器城市；本表网络归属也是历史查询结果，不是探针的输出。
+
+地域/网络核对入口：[IPAM 联系页](https://www.ipam.ucla.edu/contact-us/)、[Golden State 官网](https://www.thegoldenstateacademy.com/)、[OSC 官网](https://www.osc.edu/)、[Arch 官方 sg.gs 镜像条目](https://archlinux.org/mirrors/sg.gs/)、[NII 地址](https://www.nii.ac.jp/en/about/access/)、[东大理学部地址](https://www.s.u-tokyo.ac.jp/ja/access.html)、[法兰克福大学](https://www.uni-frankfurt.de/en)、[LSE 联系页](https://www.lse.ac.uk/lse-information/contact-us)。可按测量 IP 查询 [RIPEstat network-info](https://stat.ripe.net/docs/data-api/api-endpoints/network-info)，但当前网页或 API 结果不重写历史观测，也不替代当地测试。
+
+此前候选的反证也应保留：
+
+- `registrar.osu.edu` 与 `www.asc.ohio-state.edu` 在上述修复后初筛中为 `BASELINE_FAIL / TLS_HANDSHAKE_FAILED`，不列为通过候选。`www.asc.ohio-state.ed` 少末尾 `u`，不是正确域名。当前没有已验证通过且避开已识别 CDN 的哥伦布候选。
+- 同日较早的独立复验中，`events.comp.nus.edu.sg`、`www.ms.u-tokyo.ac.jp`、`two.wide.ad.jp`、`www.frankfurt-university.de` 选择 HTTP/1.1，`www.imperial.ac.uk` 未协商 ALPN，均未满足 h2 基线；`www.mrcctu.ucl.ac.uk` 的 TLS 1.3 握手失败。这些是当次观测，不是永久拒绝名单。
+- 厂商黑名单属于额外选站政策，不能等同于 TLS 技术失败。探针不检测 CDN/ASN；云 ASN 也不能单独区分 CDN 与独立云主机。
+
+### 3. 当地 DNS 探测与固定配对复验
+
+在拟采用的每台 VPS 上运行。以下以新加坡为例，其他地区只替换 `sni` 为表中同一行的域名；东京两个候选分别运行。报告保存到每次新建的目录，默认不覆盖旧记录。
+
+```bash
+kit="$HOME/vps-kit-probe/0.5.0a2/bin/vps-kit"
+sni='mirror.sg.gs'
+umask 077
+mkdir -p "$HOME/sni-retest"
+run=$(mktemp -d "$HOME/sni-retest/${sni}.XXXXXX")
+
+date -u '+%Y-%m-%dT%H:%M:%SZ' > "$run/time.txt"
+cat /etc/os-release > "$run/os-release.txt"
+rc=0
+python3 -B "$kit" reality probe \
+  --target "${sni}:443" --sni "$sni" --timeout 5 \
+  > "$run/domain.json" || rc=$?
+printf '%s\n' "$rc" > "$run/domain.exit"
+cat "$run/domain.json"
+printf '探针退出码=%s；记录目录=%s\n' "$rc" "$run"
+```
+
+先阅读 `results` 中各地址的 `address`、`port`、`sni`、`status` 和 `code`。**没有通过项时，不进入固定配对和 HTTP 检查；先按第 4 节排查。** 退出码 `1` 不等于全域名失败，例如它可能只由某个不可达的 IPv6 产生。探针不使用 HTTP/SOCKS 代理环境变量，但系统路由/TUN 仍会影响路径。
+
+选定报告中一个 `BASELINE_PASS` 的地址后，在同一 Bash 会话输入该地址；IPv6 输入不带方括号。不要直接把历史 IP 当成当地当前解析结果。
+
+```bash
+read -r -p '输入 domain.json 中已通过的 address：' ip
+target="${ip}:443"
+case "$ip" in
+  *:*) target="[${ip}]:443" ;;
+esac
+
+for n in 1 2 3; do
+  rc=0
+  python3 -B "$kit" reality probe \
+    --target "$target" --sni "$sni" --timeout 5 \
+    > "$run/fixed-$n.json" || rc=$?
+  printf '%s\n' "$rc" > "$run/fixed-$n.exit"
+  printf '第 %s 轮退出码=%s\n' "$n" "$rc"
+  if [ "$rc" -ge 2 ]; then
+    break
+  fi
+  if [ "$n" -lt 3 ]; then
+    sleep 2
+  fi
+done
+cat "$run"/fixed-*.json
+```
+
+这是操作者显式选择的三次独立测量，探针本身不自动重试。退出码为 `2`、`130` 或其他异常值时停止循环并排查；退出码 `1` 的记录完整保留，不被后一次通过覆盖。三轮通过只说明短期重复连接表现；采用前宜在另一时段再次测量，比较 `tcp_ms`、`tls_ms` 与失败情况，不设跨地区通用的低延迟阈值。
+
+### 4. 结果判读与停止条件
+
+退出码及状态定义见前文 [检查与结果边界](#检查与结果边界)。顶层 `result=PROBE_COMPLETE` 只说明流程完成；必须逐条检查 `results`，不能以它判定通过。
+
+| 状态／原因 | 本次可以得出的结论 | 下一步 |
+|---|---|---|
+| `BASELINE_PASS / BASELINE_MATCH` | 同一地址、端口、SNI 的新握手满足既定基线 | 核对 `TLSv1.3`、`h2`、`certificate_verified=true`、`X25519_ONLY_FULL_HANDSHAKE`，再做独立 HTTP 检查 |
+| `BASELINE_FAIL / ALPN_NOT_H2` | 本次未协商到 h2 | 不满足本仓库基线；不泛化为所有 REALITY 模式不可用 |
+| `BASELINE_FAIL / TLS_HANDSHAKE_FAILED` | 严格条件下发生明确 TLS 错误 | 暂不采用该配对，必要时独立诊断协议、密钥交换或目标策略 |
+| `BASELINE_FAIL / CERTIFICATE_VERIFY_FAILED` | 本次证书验证失败 | 检查系统时间、CA 信任库、SNI；不通过关闭验证绕过 |
+| `INCOMPLETE / TLS_CONNECTION_FAILED` | 提前关闭、EOF 或重置，没有完整握手证据 | 保留未完成状态，检查路径并另时复验 |
+| `INCOMPLETE / TCP_TIMEOUT`、`TLS_TIMEOUT`、`TCP_CONNECT_FAILED` | 本次路径连接或握手未完成 | 检查地址族、路由、可达性，不直接否定网站 TLS 能力 |
+| `INCOMPLETE / DNS_LOOKUP_FAILED` | 当前系统解析失败 | 检查拼写和 DNS |
+| `PROBE_RUNTIME_UNSUPPORTED`、`PROBE_TLS_CAPABILITY_UNAVAILABLE` 等环境错误 | 运行环境未满足要求 | 停止评价目标，先修复运行环境；不重试一批网站来绕开相同错误 |
+
+`--timeout 5` 分别约束一次 TCP 和一次 TLS 阶段，不是整域名总时限，也不强制终止系统 DNS 等待。每域名最多 16 个地址；未覆盖部分为 `INCOMPLETE`。IPv4 成功、IPv6 未完成只能写成该 IPv4 配对通过，不能写成整域名通过。
+
+### 5. 固定同一配对检查 HTTP
+
+沿用第 3 节的 `sni`、`ip`、`run`。先运行 `curl --version`，确认 curl 7.73.0+、OpenSSL 后端和 `HTTP2` 功能；缺失时记录 HTTP 复验环境不满足，不将其算作站点失败。以下先发 HEAD，固定连接 IP，保留域名用于 TLS SNI、证书名称验证和 HTTP Host。
+
+```bash
+resolve_ip="$ip"
+case "$ip" in
+  *:*) resolve_ip="[$ip]" ;;
+esac
+rc=0
+env -u SSLKEYLOGFILE curl -q --silent --show-error --head \
+  --http2 --tlsv1.3 --tls-max 1.3 --curves X25519 \
+  --noproxy '*' --proto '=https' --connect-timeout 5 --max-time 10 \
+  --resolve "${sni}:443:${resolve_ip}" --output /dev/null \
+  --write-out '%{json}\n' "https://${sni}/" \
+  > "$run/http-head.json" || rc=$?
+printf '%s\n' "$rc" > "$run/http-head.exit"
+cat "$run/http-head.json"
+printf 'curl 退出码=%s\n' "$rc"
+```
+
+`-q` 避免默认 `.curlrc` 干扰，`--noproxy '*'` 排除 curl 的代理配置，但不绕过系统路由/TUN。不要添加 `-k` 跳过证书验证，也不要添加 `-L` 自动跟随跳转。参数语义见 [curl 官方手册](https://curl.se/docs/manpage.html)。
+
+| 字段 | 判读 |
+|---|---|
+| curl 退出码 | 应为 `0`；非零先检查错误，不能只凭 HTTP 状态码判断 |
+| `remote_ip` | 应为选定的 IP；IPv6 文本压缩形式不同需按地址值比较 |
+| `ssl_verify_result` | 应为 `0` |
+| `http_version` | 应为 `2`；仅提供 `--http2` 不证明已使用 HTTP/2 |
+| `http_code` | `200` 最直接；3xx、403、405 结合应用行为判断 |
+| `redirect_url` | 无跳转通常为空；存在时检查是否跨域名或降级到 HTTP |
+
+东大理学部历史上跳到同主机 `/ja/`，法兰克福大学跳到同主机 `/en`。若当地结果仍如此，可将 URL 改为该 HTTPS 路径单独检查，并使用新的报告文件名；**Target 始终是 `HOST:PORT`，不含 `/ja/`、`/en` 或 URL scheme**。同主机路径跳转是需明确接受的权衡，不等于“完全无跳转”。跨域名跳转时，将新主机作为独立候选重新测试，不自动继承原配对的结论。
+
+HEAD 返回 `403/405` 是应用层观察，不能倒推 TLS 不兼容。必要时去掉 `--head` 做 GET，保留 10 秒总时限，并可加 `--max-filesize 1048576`，输出另存 `http-get.json`/`.exit`；遇到大小限制错误只表示响应未完整取得。较旧 curl 对未知长度响应的大小限制能力不同，不能承诺严格字节上限。不要下载镜像站的大文件作为选站检查。
+
+手工 HTTP 结果独立记录，原探针 JSON 中的 `http=NOT_TESTED` 保持不变；HEAD 通过也不等于已经验证完整 GET 内容。
+
+### 6. 实际 REALITY 验收与记录
+
+当地 TLS 和 HTTP 满足选择标准后，再使用实际 Xray/客户端版本和指纹验收。服务端 Target 采用刚验证的 `域名:443` 或 `IP:443`，服务端允许的 SNI 包含同一个具体域名，客户端 SNI 与之相同。具体字段以现场版本为准，本节不提供覆盖现有节点的通用配置。
+
+若采用域名 Target，应按实际 Xray 的 DNS/路由路径复核，并接受 DNS 地址后续变化；固定 IP 也可能因站点迁移失效。确认实际 REALITY 连接和客户端请求成功、服务端无对应握手错误、客户端没有意外回退到直连，再单独记录验收结果。短期 TLS/HTTP 成功不能证明长期稳定性、浏览器指纹等价、混合后量子密钥交换支持或抗封锁效果。
+
+建议每台 VPS 使用下列记录格式；分享时移除 VPS 自身地址、账号、客户端身份和凭据，不上传完整生产配置。
+
+```text
+地区 / 测试时间（UTC）：
+OS / Python / OpenSSL / curl：
+工具版本 / 发布包 SHA256：
+SNI / 当地 DNS 地址集合：
+本次固定 Target / 实际连接 IP：
+固定配对三轮状态、原因 / TCP 与 TLS 耗时：
+HTTP 方法 / HTTP 版本 / 状态码 / 跳转：
+CDN、同主机跳转等已接受权衡：
+Xray / 客户端版本与指纹：
+实际 REALITY：通过 / 失败 / 未测
+证据文件 / 下次复验时间：
+```
+
+完成某台 VPS 的复验只更新该地区、该主机路径和该配对的记录，不把历史表中其他“待验证”行批量提升为通过。
+
+### 7. 已有受管 traffic 的整包升级
+
+**只在已由 P3 管理且确实需要升级整套工具时执行。** 普通解压目录、其他流量脚本或尚未接管的旧部署不适用 `--kind upgrade`。真实 Linux/systemd、面板及业务集成仍未验收；以下是已实现接口的操作步骤，不是生产升级已验证的声明。约束、异常及回退范围以 [P3 契约](p3-contract.md)为准。
+
+前置条件：以 root 操作；新包和独立源码在 root 独占写入目录；已保存当前部署/配置及恢复材料；NTP 同步；维护窗口距业务周期边界至少 900 秒；没有活动重置 service、排队任务或未知调度。准备与当前活动修订完全一致的配置 JSON，不得用包内合成示例代替。升级不同时改配置、配额或 Token。
+
+本节的 `/root/current-traffic.json`、`/root/upgrade-attestations.json` 是**操作者事先准备的现场文件名示例**，不是工具自动导出的文件。它们须为 root 所有、权限 `0600`，父目录不可由其他用户写入；ZIP 须为 `0600` 或 `0644`。人工确认文件仅在逐项确认 admin 权限、本地计量和没有其他清零源后写入：
+
+```json
+{"admin_scope":true,"local_accounting":true,"other_reset_jobs_absent":true}
+```
+
+下面 `<…>` 均为必须替换的现场值；各阶段成功并审阅结果后，才进入下一阶段。首先在 root 会话设置路径并只读检查：
+
+```bash
+kit='/root/vps-kit-probe/0.5.0a2/bin/vps-kit'
+pkg='/root/vps-kit-probe/downloads/0.5.0a2/vps-kit-0.5.0a2.zip'
+python3 -B "$kit" traffic deployment-audit --local
+/usr/local/bin/vps-kit traffic check --local --task '<实际任务UUID>'
+```
+
+`deployment-audit` 应显示已有完整部署，`check` 无阻断；否则停止升级并核查。计划保存路径必须尚不存在。下面默认选择升级后暂停：
+
+```bash
+python3 -B "$kit" traffic deployment-plan \
+  --local --kind upgrade \
+  --config /root/current-traffic.json \
+  --package "$pkg" \
+  --package-sha256 '<v0.5.0a2发布页的ZIP-SHA256>' \
+  --activation paused \
+  --attestations /root/upgrade-attestations.json \
+  --save /root/upgrade-0.5.0a2-plan.json
+```
+
+预期 `DEPLOYMENT_PLAN_SAVED`、`version=0.5.0a2`、`timer_changed=false`。保存 `operation_id` 和输出的 `sha256`，核对任务、程序版本、首个/下一合法边界及启用选择。计划不暂停 timer；apply 会暂停并按 `paused` 保持暂停。原本已启用且明确希望升级后恢复调度时，可在**生成计划时**选择 `enabled`；原本暂停只能选择 `paused`。
+
+使用计划输出的 **`sha256` 字段**确认，而不是对 JSON 文件执行 `sha256sum` 的结果。升级 plan/apply 均不传 `--credential-file`：
+
+```bash
+python3 -B "$kit" traffic deployment-apply \
+  --local --plan /root/upgrade-0.5.0a2-plan.json \
+  --expect-sha256 '<计划输出的sha256>' \
+  --package "$pkg"
+```
+
+只有 apply 成功后，才从稳定入口核对：
+
+```bash
+/usr/local/bin/vps-kit --version
+/usr/local/bin/vps-kit traffic deployment-audit --local
+/usr/local/bin/vps-kit traffic check --local --task '<实际任务UUID>'
+```
+
+预期版本 `0.5.0a2`、部署 `stage=complete`、任务检查无阻断，并核对 timer 是否符合计划。文件安装完成不能单独证明 timer 已恢复。若计划选择暂停且操作者确认恢复条件已经满足，再显式恢复；不要将本命令与 apply 连成无条件执行脚本：
+
+```bash
+/usr/local/bin/vps-kit traffic resume --local --task '<实际任务UUID>'
+```
+
+apply 失败时保留现场，先从独立入口运行 `deployment-audit`；不要直接重复 apply、删除日志或手工改 `current`。确需回退时，使用审计确认的最近部署操作 UUID：
+
+```bash
+python3 -B "$kit" traffic deployment-rollback \
+  --local --operation '<最近部署操作UUID>' --task '<实际任务UUID>'
+python3 -B "$kit" traffic deployment-audit --local
+```
+
+成功回退表示文件恢复，流量历史和账本保留，自动化保持暂停。回退只适用于契约允许的最近操作；未知文件改动、备份异常或日志阻断需要按 P3 契约排查，不能靠换 UUID 或删记录绕过。保留独立源码入口、旧发行目录和备份，直至部署与恢复状态核对完成。
+
+### 本节命令核验范围
+
+2026-11-01，本节初稿针对 `v0.5.0a1` 命令完成以下检查，证据层级分别记录。`v0.5.0a2` 已同步版本、安装目录和摘要输入方式；最终发布提交的命令核验、CI 和附件校验见 [本版本发布说明](https://github.com/alieismy/vps-kit/releases/tag/v0.5.0a2)，不得将初稿检查自动视为新附件验证。
+
+| 检查 | 结果与边界 |
+|---|---|
+| Bash 语法 | 13 个代码块通过 `bash -n`；不代表 apt、systemd 或现场文件已经执行 |
+| CLI 参数 | 16 条工具命令模板通过当前参数解析器；现场 UUID、配置、权限、计划摘要及服务状态仍由运行时核验 |
+| 下载、解压与入口 | Windows / Git Bash / CPython 的隔离目录中实际下载两个公开附件，核对摘要、解压、`package-verify` 和 `--version` 均通过；只替换安装基目录，并以现有 CPython 提供 `python3` 命令 |
+| 安装失败边界 | 已有版本目录被拒绝且原文件不变；错误摘要在解压前停止 |
+| 历史配对 | 八组域名/IP、每组三轮通过数与保存的原始记录一致；三个探针模块源码摘要与测量时一致 |
+| 仓库文档与包链接 | 既有 8 项仓库检查通过，包括临时测试包内链接完整性；未更新公开附件 |
+| 当地路径与实际升级 | 本次未探测公共候选、未执行 VPS 安装或 P3 事务；七地区当地路径、实际 REALITY 和真实 Linux/systemd 升级仍未验证 |
 
 
 ## 使用与证据边界

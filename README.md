@@ -2,16 +2,16 @@
 
 面向 Linux VPS 的工具集，当前提供 **3X-UI 流量重置调度与迁移管理**和 **REALITY 候选 Target/SNI 配对探测**。流量工具将业务周期、对象身份、配额和执行历史绑定；探针帮助维护者复验有限候选的 TLS 基线。
 
-**当前版本：`0.5.0a1`，Alpha 预发布。** 当前阶段适合源码审阅、合成数据体验和受控候选验证。REALITY 探针只判断指定条件下的候选基线；采用前仍需在实际 VPS 上确认 HTTP 行为及 Xray/客户端连接。流量工具在 Debian 12/13、Ubuntu 24.04 上的真实 Linux/systemd、3X-UI API 写入及业务集成仍未验收。
+**当前版本：`0.5.0a2`，Alpha 预发布。** 当前阶段适合源码审阅、合成数据体验和受控候选验证。REALITY 探针只判断指定条件下的候选基线；采用前仍需在实际 VPS 上确认 HTTP 行为及 Xray/客户端连接。流量工具在 Debian 12/13、Ubuntu 24.04 上的真实 Linux/systemd、3X-UI API 写入及业务集成仍未验收。
 
 ## 预发布下载
 
-当前 [v0.5.0a1 预发布](https://github.com/alieismy/vps-kit/releases/tag/v0.5.0a1) 包含新增的 REALITY 候选探针及 TLS 提前关闭分类修复。
+当前 [v0.5.0a2 预发布](https://github.com/alieismy/vps-kit/releases/tag/v0.5.0a2) 收录 VPS 安装升级、七地区候选 Target/SNI 和人工复验指南，沿用 `0.5.0a1` 的探针及流量业务逻辑。
 
-- [开发包：vps-kit-0.5.0a1.zip](https://github.com/alieismy/vps-kit/releases/download/v0.5.0a1/vps-kit-0.5.0a1.zip)
-- [SHA256 摘要：vps-kit-0.5.0a1.zip.sha256](https://github.com/alieismy/vps-kit/releases/download/v0.5.0a1/vps-kit-0.5.0a1.zip.sha256)
+- [开发包：vps-kit-0.5.0a2.zip](https://github.com/alieismy/vps-kit/releases/download/v0.5.0a2/vps-kit-0.5.0a2.zip)
+- [SHA256 摘要：vps-kit-0.5.0a2.zip.sha256](https://github.com/alieismy/vps-kit/releases/download/v0.5.0a2/vps-kit-0.5.0a2.zip.sha256)
 
-附件对应标签 `v0.5.0a1` 的源码；确切提交、SHA256、校验方法、已验证范围及未验收边界见 [发布说明](https://github.com/alieismy/vps-kit/releases/tag/v0.5.0a1)。GitHub 自动生成的 `Source code` 归档是标签源码快照，与上述经过 manifest 校验的开发包不同。[历史 v0.4.0a3 预发布](https://github.com/alieismy/vps-kit/releases/tag/v0.4.0a3)及其附件保持不变。
+附件对应标签 `v0.5.0a2` 的源码；确切提交、SHA256、校验方法、已验证范围及未验收边界见 [发布说明](https://github.com/alieismy/vps-kit/releases/tag/v0.5.0a2)。GitHub 自动生成的 `Source code` 归档是标签源码快照，与上述经过 manifest 校验的开发包不同。[历史 v0.5.0a1](https://github.com/alieismy/vps-kit/releases/tag/v0.5.0a1)、[v0.4.0a3](https://github.com/alieismy/vps-kit/releases/tag/v0.4.0a3) 预发布及其附件保持不变。VPS 操作者可直接阅读 [安装升级与七地区人工复验](doc/cli.md#vps-安装与七地区人工复验)。
 
 ## 主要能力
 
@@ -42,7 +42,7 @@ python -B bin/vps-kit traffic units --config tests/traffic/fixtures/3.7.0/config
 
 Linux 可将 `python` 换成 `python3`。这些命令只读取仓库内的合成 JSON，不读取真实凭据、不发送 HTTP、不操作 timer/service。`units` 只输出 unit 文本。
 
-预期输出包括：版本 `0.5.0a1`、`CONFIG_VALID`、`READ_CONTRACT_PASS`（`evidence_mode=SYNTHETIC`、`http_calls=0`、每版 `read_calls=5`），以及 `STATE_CONTRACT_VALID`。合成账本中的 `COMPLETED_RECORDED` 只表示样例结构有效，不表示真实请求已经执行。
+预期输出包括：版本 `0.5.0a2`、`CONFIG_VALID`、`READ_CONTRACT_PASS`（`evidence_mode=SYNTHETIC`、`http_calls=0`、每版 `read_calls=5`），以及 `STATE_CONTRACT_VALID`。合成账本中的 `COMPLETED_RECORDED` 只表示样例结构有效，不表示真实请求已经执行。
 
 源码入口会在导入包前关闭字节码写入，无需 `pip install`；当前未注册 pip console script。详见 [开发与贡献](CONTRIBUTING.md)。
 
