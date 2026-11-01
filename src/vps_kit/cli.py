@@ -10,6 +10,7 @@ from .traffic.host import live_guard, read_status
 from .traffic.panel_http import LocalPanelReader, token_file
 from .traffic.state import inspect_ledger
 from .traffic import commands, deploy_commands
+from .reality import commands as reality_commands
 
 
 class Parser(argparse.ArgumentParser):
@@ -23,7 +24,7 @@ class Parser(argparse.ArgumentParser):
 
 
 def parser():
-    p = Parser(prog="vps-kit", description="E1：月日历/固定 30 天流量任务；仅本地模拟验证，真实部署需另行验收。")
+    p = Parser(prog="vps-kit", description="VPS 工具集：流量管理与 REALITY 候选 TLS 基线探测；真实部署需另行验收。")
     p.add_argument("--version", action="version", version=__version__)
     tools = p.add_subparsers(dest="tool")
     traffic = tools.add_parser("traffic", help="流量任务接口")
@@ -43,6 +44,7 @@ def parser():
     discovery.add_argument("--token-file")
     commands.add_arguments(actions)
     deploy_commands.add_arguments(actions)
+    reality_commands.add_arguments(tools)
     return p
 
 
@@ -50,6 +52,14 @@ def main(argv=None):
     reader = None
     try:
         args = parser().parse_args(argv)
+        if args.tool == 'reality':
+            if not args.action:
+                print(json.dumps({'version': __version__, 'tool': 'reality', 'actions': ['probe'],
+                                  'network': 'EXPLICIT_PROBE_ONLY', 'script_writes': 0}))
+                return 0
+            report, code = reality_commands.run(args)
+            print(json.dumps(report, ensure_ascii=False, sort_keys=True, indent=2))
+            return code
         if not args.tool or not args.action:
             print(json.dumps({"version": __version__, "phase": "E1", "actions": ["validate-config", "inspect-state", "status", "discover", *commands.ACTIONS, *deploy_commands.ACTIONS],
                               "write_actions": "EXPLICIT_LOCAL_ONLY", "script_writes": 0}, ensure_ascii=False))

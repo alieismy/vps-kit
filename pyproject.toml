@@ -4,15 +4,15 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "vps-kit"
-version = "0.4.0a3"
-description = "Local VPS utilities for 3X-UI traffic scheduling and migration"
+version = "0.5.0a1"
+description = "VPS utilities for traffic management and REALITY target probing"
 readme = "README.md"
 license = "MIT"
 license-files = ["LICENSE"]
 authors = [{name = "alieismy"}]
 requires-python = ">=3.11"
 dependencies = []
-keywords = ["vps", "3x-ui", "traffic", "systemd"]
+keywords = ["vps", "3x-ui", "traffic", "systemd", "reality", "tls"]
 classifiers = [
     "Development Status :: 3 - Alpha",
     "Environment :: Console",

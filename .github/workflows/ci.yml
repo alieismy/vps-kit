@@ -35,4 +35,6 @@ jobs:
         run: python -B tests/run.py
       - name: Verify local curl transport
         run: python -B tests/loopback_transport.py
+      - name: Verify local TLS probe
+        run: python -B tests/reality_loopback.py
       # Hosted runner tests do not establish Linux/systemd or real panel acceptance.

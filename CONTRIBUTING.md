@@ -22,6 +22,14 @@ python -B tests/run.py test_config.py
 
 `tests/run.py` 拒绝测试进程的真实网络连接和监听，仅允许受控 Python 子进程。面板 POST、systemd 和目标系统操作使用替身；文件持久化测试使用临时文件。部分平台行为采用模型，不能据此声称真实 Linux 集成通过。完整回归可能需要十余分钟，请保留失败输出并先定位原因。
 
+REALITY 的输入、CSV、结果及 CLI 测试也由该入口发现。真实 TLS 握手使用独立的合成回环入口：
+
+```powershell
+python -B tests/reality_loopback.py
+```
+
+该入口使用测试自带的合成证书和测试私钥，临时监听本机回环地址，验证证书名称、信任、TLS/ALPN、X25519 限制及握手提前关闭等成功与失败路径；证书文件仅写入临时目录并在结束时清理，不下载证书、不访问公网或 VPS。合成私钥是公开测试材料，不用于任何真实服务。此结果不表示 HTTP/2 内容、真实目标网站、实际 REALITY 或 Xray/客户端连接已验收。探针的能力要求、官方 CPython 3.11.4+ 建议及发行版回移植说明集中见 [CLI 参考](doc/cli.md#reality-候选探针)；项目和 `traffic` 的 Python 最低版本仍为 3.11。
+
 需要验证 curl 传输时，单独运行：
 
 ```powershell
@@ -44,7 +52,7 @@ Linux 可将上述 `python` 换成 `python3`。源码入口及测试入口会关
 
 ## 验证与许可
 
-仓库 CI 配置位于 `.github/workflows/ci.yml`，使用 Ubuntu 24.04 / Python 3.11 与 Windows 2025 / Python 3.13 两个 hosted runner 组合，复用上述完整回归和回环测试入口。Windows CI 显式准备 `tzdata`；仓库权限为只读，不需要 VPS 凭据。该工作流文件不随离线 ZIP 分发。
+仓库 CI 配置位于 `.github/workflows/ci.yml`，使用 Ubuntu 24.04 / Python 3.11 与 Windows 2025 / Python 3.13 两个 hosted runner 组合，复用上述完整回归、curl 回环及合成 TLS 回环测试入口。Windows CI 显式准备 `tzdata`；仓库权限为只读，不需要 VPS 凭据。该工作流文件不随离线 ZIP 分发。
 
 CI 结果只证明对应测试环境，不代替 Debian 12/13、Ubuntu 24.04 与真实双版本面板验收。以实际 workflow 运行结果为准，添加配置不表示已经在 GitHub 运行。
 

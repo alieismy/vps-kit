@@ -23,6 +23,8 @@ def no_network(event, args):
 
 
 sys.addaudithook(no_network)
-suite = unittest.defaultTestLoader.discover(str(root / "tests/traffic"), pattern=sys.argv[1] if len(sys.argv) == 2 else "test_*.py")
+pattern = sys.argv[1] if len(sys.argv) == 2 else "test_*.py"
+suite = unittest.TestSuite(unittest.TestLoader().discover(str(root / "tests" / directory), pattern=pattern)
+                           for directory in ('traffic', 'reality'))
 result = unittest.TextTestRunner(verbosity=2).run(suite)
 raise SystemExit(0 if result.wasSuccessful() else 1)

@@ -1,15 +1,17 @@
 # vps-kit
 
-面向 Linux VPS 的工具集，当前提供 **3X-UI 流量重置调度与迁移管理**。它将月账期或固定 30 天周期、对象身份、配额策略和执行历史绑定在一起，帮助维护者核对配置、管理调度并追踪异常。
+面向 Linux VPS 的工具集，当前提供 **3X-UI 流量重置调度与迁移管理**和 **REALITY 候选 Target/SNI 配对探测**。流量工具将业务周期、对象身份、配额和执行历史绑定；探针帮助维护者复验有限候选的 TLS 基线。
 
-**当前版本：`0.4.0a3`，Alpha 开发版。** 已于 2026-10-26 发布 [v0.4.0a3 预发布](https://github.com/alieismy/vps-kit/releases/tag/v0.4.0a3)。当前阶段适合源码审阅、合成数据体验和本地开发验证。Debian 12/13、Ubuntu 24.04 上的真实 Linux/systemd、3X-UI API 写入及业务集成仍未验收，不能将本地测试结果视为生产可用承诺。
+**当前版本：`0.5.0a1`，Alpha 预发布。** 当前阶段适合源码审阅、合成数据体验和受控候选验证。REALITY 探针只判断指定条件下的候选基线；采用前仍需在实际 VPS 上确认 HTTP 行为及 Xray/客户端连接。流量工具在 Debian 12/13、Ubuntu 24.04 上的真实 Linux/systemd、3X-UI API 写入及业务集成仍未验收。
 
 ## 预发布下载
 
-- [开发包：vps-kit-0.4.0a3-b93669c.zip](https://github.com/alieismy/vps-kit/releases/download/v0.4.0a3/vps-kit-0.4.0a3-b93669c.zip)
-- [SHA256 摘要：vps-kit-0.4.0a3-b93669c.zip.sha256](https://github.com/alieismy/vps-kit/releases/download/v0.4.0a3/vps-kit-0.4.0a3-b93669c.zip.sha256)
+当前 [v0.5.0a1 预发布](https://github.com/alieismy/vps-kit/releases/tag/v0.5.0a1) 包含新增的 REALITY 候选探针及 TLS 提前关闭分类修复。
 
-上述附件固定对应提交 `b93669c50bd1e172761c69149c97727031705195`。校验方法、已验证范围及未验收边界见 [发布说明](https://github.com/alieismy/vps-kit/releases/tag/v0.4.0a3)。GitHub 自动生成的 `Source code` 归档是标签源码快照，与上述经过 manifest 校验的开发包不同。
+- [开发包：vps-kit-0.5.0a1.zip](https://github.com/alieismy/vps-kit/releases/download/v0.5.0a1/vps-kit-0.5.0a1.zip)
+- [SHA256 摘要：vps-kit-0.5.0a1.zip.sha256](https://github.com/alieismy/vps-kit/releases/download/v0.5.0a1/vps-kit-0.5.0a1.zip.sha256)
+
+附件对应标签 `v0.5.0a1` 的源码；确切提交、SHA256、校验方法、已验证范围及未验收边界见 [发布说明](https://github.com/alieismy/vps-kit/releases/tag/v0.5.0a1)。GitHub 自动生成的 `Source code` 归档是标签源码快照，与上述经过 manifest 校验的开发包不同。[历史 v0.4.0a3 预发布](https://github.com/alieismy/vps-kit/releases/tag/v0.4.0a3)及其附件保持不变。
 
 ## 主要能力
 
@@ -18,12 +20,13 @@
 - 提供配置校验、只读发现、状态审计、候选计划、timer 生命周期、已知旧部署接管及文件回退接口。
 - 在写请求前持久记录意图；同一授权周期每个步骤最多发起一次请求。不确定状态会阻断后续执行，交由维护者核查。
 - 使用固定清单构建离线 ZIP 包，并核对成员、版本和 SHA256 摘要。
+- 对显式 Target/SNI 或 RealiTLScanner v0.2.3 CSV 候选逐地址检查 TLS 1.3、X25519、h2 及证书链、有效期、SAN 名称匹配；JSON 保留失败和未完成项。
 
 完整动作、参数入口及副作用见 [CLI 参考](doc/cli.md)。迁移适配只接受已审核来源；通用工具名称不代表能自动接管任意旧脚本。
 
 ## 快速体验
 
-需要 Python 3.11+ 和 IANA 时区数据库。运行期 Python 代码仅使用标准库；Linux 通常由系统 `tzdata` 提供时区数据，Windows 开发环境也需要预先提供该数据。缺失或名称无效时返回 `TIMEZONE_DATA_OR_NAME`，工具不会自动安装依赖。
+需要 Python 3.11+；流量日期计算另需 IANA 时区数据库。运行期 Python 代码仅使用标准库；Linux 通常由系统 `tzdata` 提供时区数据，Windows 开发环境也需要预先提供该数据。缺失或名称无效时返回 `TIMEZONE_DATA_OR_NAME`，工具不会自动安装依赖。
 
 在仓库根目录执行：
 
@@ -39,15 +42,18 @@ python -B bin/vps-kit traffic units --config tests/traffic/fixtures/3.7.0/config
 
 Linux 可将 `python` 换成 `python3`。这些命令只读取仓库内的合成 JSON，不读取真实凭据、不发送 HTTP、不操作 timer/service。`units` 只输出 unit 文本。
 
-预期输出包括：版本 `0.4.0a3`、`CONFIG_VALID`、`READ_CONTRACT_PASS`（`evidence_mode=SYNTHETIC`、`http_calls=0`、每版 `read_calls=5`），以及 `STATE_CONTRACT_VALID`。合成账本中的 `COMPLETED_RECORDED` 只表示样例结构有效，不表示真实请求已经执行。
+预期输出包括：版本 `0.5.0a1`、`CONFIG_VALID`、`READ_CONTRACT_PASS`（`evidence_mode=SYNTHETIC`、`http_calls=0`、每版 `read_calls=5`），以及 `STATE_CONTRACT_VALID`。合成账本中的 `COMPLETED_RECORDED` 只表示样例结构有效，不表示真实请求已经执行。
 
 源码入口会在导入包前关闭字节码写入，无需 `pip install`；当前未注册 pip console script。详见 [开发与贡献](CONTRIBUTING.md)。
+
+REALITY 探针使用 `python -B bin/vps-kit reality probe --help` 查看参数。它需要支持 TLS 1.3、ALPN、X25519 和可用信任库的 CPython/OpenSSL 3 组合；官方 CPython 建议 3.11.4+，发行版回移植以实际能力检查为准。不要求安装 OpenSSL 命令行程序，能力不足只影响 `reality`。对目标的探测会连接网络，运行环境说明、输入、结果边界、退出码和采用前人工复验集中见 [CLI 参考](doc/cli.md#reality-候选探针)。
 
 ## 环境与验证范围
 
 | 范围 | 当前状态 |
 |---|---|
 | Python | 3.11+；Windows 可用于离线开发与测试 |
+| REALITY 探针 | 修复后已在 Windows / Debian 13 完成合成 TLS 回环，并取得有限美国出口候选测量。具体能力、结果及未验收范围见 [CLI](doc/cli.md#采用前人工复验) |
 | 真实管理目标 | Linux，PID 1 为 systemd，Python 3.11+、systemd 252+、curl、IANA tzdata；本机写管理需要 root |
 | 目标 OS | Debian 13、Debian 12、Ubuntu 24.04 LTS；各环境真实集成未验收 |
 | 面板版本 | 仅精确适配官方 3X-UI `3.7.0`、`3.10.2`；未知版本及定制后缀拒绝 |
@@ -55,7 +61,7 @@ Linux 可将 `python` 换成 `python3`。这些命令只读取仓库内的合成
 | L2/L3 | Linux 系统接口、双版本面板与隔离代理业务验收均为 `NOT_RUN` |
 | 生产业务 | 自然账期、真实商家计量、真实用户流量与扩大部署未验收 |
 
-本地测试运行方法及其边界见 [CONTRIBUTING.md](CONTRIBUTING.md)。历史 `0.4.0a2` 的 180 项 L1 测试记录保留在 [E1-2 复查记录](doc/vmrack-review-20261025.md)，不作为 `0.4.0a3` 的测试结果。版本变化见 [CHANGELOG.md](CHANGELOG.md)。
+本地测试运行方法及其边界见 [CONTRIBUTING.md](CONTRIBUTING.md)。历史 `0.4.0a2` 的 180 项 L1 测试记录保留在 [E1-2 复查记录](doc/vmrack-review-20261025.md)，不作为当前版本的测试结果。版本变化见 [CHANGELOG.md](CHANGELOG.md)。
 
 ## 重要限制
 
@@ -65,6 +71,8 @@ Linux 可将 `python` 换成 `python3`。这些命令只读取仓库内的合成
 - 服务端没有幂等键，不能承诺严格 exactly-once（恰好一次）。响应丢失、晚提交及一致的整机快照回卷仍需外部证据和人工处置。
 - 文件回退保留历史与计数，两侧调度保持暂停；恢复文件不表示自动化或业务已恢复。
 - `3.7.0+traffic.2` 写适配延期。已有旧部署适配的标签、时间和摘要用于来源核对，不能当作通用预设照搬。
+- REALITY 探针不自动启动或下载扫描器，不查询 ASN/GeoIP，不修改面板、Xray、timer 或凭据。通过基线不证明 HTTP/重定向行为、实际 REALITY 连接、稳定性或抗封锁效果。
+- 新模块计入整包程序摘要。已部署流量工具应沿现有整包升级流程更新，不能把新源码直接覆盖到现役版本目录。
 
 ## 文档与反馈
 
@@ -77,3 +85,5 @@ Linux 可将 `python` 换成 `python3`。这些命令只读取仓库内的合成
 本项目代码、文档及获授权的旧脚本测试材料采用 [MIT License](LICENSE)，版权署名为 `alieismy`。JSON 配置、API 响应和账本 fixture 是合成数据；旧月脚本 fixture 是获授权并经脱敏的兼容测试材料，只读取字节，不执行 Bash。详见 [fixture 说明](tests/traffic/fixtures/README.md)。
 
 本项目以独立 API 客户端实现对接，不随包分发 3X-UI 软件或其上游实现代码。适配依据和固定来源见 [上游源码证据](doc/p1-source-evidence.json)。3X-UI 的 [v3.7.0 LICENSE](https://github.com/MHSanaei/3x-ui/blob/v3.7.0/LICENSE) 与 [v3.10.2 LICENSE](https://github.com/MHSanaei/3x-ui/blob/v3.10.2/LICENSE) 为 GPLv3；本项目的 MIT 声明不替代上游许可证。
+
+REALITY 探针独立实现，不包含 SNIProbe 或 RealiTLScanner 的实现代码。导入格式对应 [RealiTLScanner v0.2.3](https://github.com/XTLS/RealiTLScanner/tree/e5e114747aa8c6dfa4b394a0782f241bf72bdce6) 的 CSV 输出；其软件采用 MPL-2.0，读取候选文件不表示随包分发该软件。
