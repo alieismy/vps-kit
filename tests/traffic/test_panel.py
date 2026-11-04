@@ -6,7 +6,7 @@ from vps_kit.traffic.config import parse_config
 from vps_kit.traffic.contracts import ContractError, canonical
 from vps_kit.traffic.discovery import FixtureReader, discover
 from vps_kit.traffic.panel import ReadEndpoint, get_adapter, recovery
-from support import config_data, fixture_data, ROOT
+from support import config_data, fixture_data, fixture_directory
 
 
 class PanelTests(unittest.TestCase):
@@ -16,10 +16,10 @@ class PanelTests(unittest.TestCase):
         return discover(cfg, reader, "SYNTHETIC"), reader
 
     def test_both_version_fixtures_fixed_and_five_gets(self):
-        for version in ("3.7.0", "3.10.2"):
+        for version in ("3.7.0", "3.10.2", "3.11.0"):
             d = config_data(version)
             fixture = fixture_data(d)
-            path = ROOT / "tests" / "traffic" / "fixtures" / version
+            path = fixture_directory(version)
             self.assertEqual(json.loads((path / "config.json").read_text(encoding="utf-8")), d)
             self.assertEqual(json.loads((path / "panel.json").read_text(encoding="utf-8")), fixture)
             report, reader = self.run_fixture(d, fixture)
@@ -30,17 +30,31 @@ class PanelTests(unittest.TestCase):
                 self.assertNotIn(hidden, json.dumps(report))
 
     def test_weekday_missing_rejected_only_for_new_adapter(self):
-        d = config_data("3.10.2")
-        f = fixture_data(d)
-        i = f["responses"]["/panel/api/inbounds/list"]["obj"][0]
-        del i["settings"]["clients"][0]["resetWeekday"]
-        with self.assertRaisesRegex(ContractError, "EMBEDDED_WEEKDAY_MIGRATION_UNVERIFIED"):
-            self.run_fixture(d, f)
+        for version in ("3.10.2", "3.11.0"):
+            for representation in ("embedded", "detail", "traffic"):
+                for value in (None, False, "0", 1, "missing"):
+                    d = config_data(version)
+                    f = fixture_data(d)
+                    if representation == "embedded":
+                        target = f["responses"]["/panel/api/inbounds/list"]["obj"][0]["settings"]["clients"][0]
+                    else:
+                        route = "get" if representation == "detail" else "traffic"
+                        target = f["responses"][f"/panel/api/clients/{route}/sample-a"]["obj"]
+                        if representation == "detail":
+                            target = target["client"]
+                    if value == "missing":
+                        del target["resetWeekday"]
+                    else:
+                        target["resetWeekday"] = value
+                    code = ("EMBEDDED_WEEKDAY_MIGRATION_UNVERIFIED" if representation == "embedded" and value == "missing"
+                            else "API_RESET_WEEKDAY")
+                    with self.subTest(version=version, representation=representation, value=value), self.assertRaisesRegex(ContractError, code):
+                        self.run_fixture(d, f)
         old = config_data()
         self.run_fixture(old, fixture_data(old))
 
     def test_missing_vs_null_bool_numeric_string_and_active_periods(self):
-        for version in ("3.7.0", "3.10.2"):
+        for version in ("3.7.0", "3.10.2", "3.11.0"):
             for field, value in (("resetDay", None), ("resetDay", False), ("resetDay", "0"),
                                  ("resetDay", 1), ("trafficReset", None), ("trafficReset", "monthly")):
                 d = config_data(version)
@@ -148,6 +162,7 @@ class PanelTests(unittest.TestCase):
                 ReadEndpoint.CLIENT.path(evil)
         self.assertEqual(get_adapter("3.7.0").future_client_reset_order, "enable-then-reset")
         self.assertEqual(get_adapter("3.10.2").future_client_reset_order, "reset-then-enable")
+        self.assertEqual(get_adapter("3.11.0").future_client_reset_order, "reset-then-enable")
 
     def test_detail_failure_stops_before_traffic_get(self):
         d = config_data()

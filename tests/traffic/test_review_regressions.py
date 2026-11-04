@@ -18,7 +18,7 @@ from vps_kit.traffic.state import inspect_history
 
 class ReviewRegressions(unittest.TestCase):
     def test_local_node_omitempty_and_remote_origin(self):
-        for version in ("3.7.0", "3.10.2"):
+        for version in ("3.7.0", "3.10.2", "3.11.0"):
             d = config_data(version)
             cfg = parse_config(json.dumps(d))
             fixture = fixture_data(d)
@@ -48,7 +48,7 @@ class ReviewRegressions(unittest.TestCase):
             self.assertEqual(json.loads(out.getvalue())["code"], "CLI_ARGUMENTS")
 
     def test_null_traffic_enable_is_not_config_enable(self):
-        for version in ("3.7.0", "3.10.2"):
+        for version in ("3.7.0", "3.10.2", "3.11.0"):
             for value in (None, "missing", "true", 1):
                 cfg_data = config_data(version)
                 cfg = parse_config(json.dumps(cfg_data))

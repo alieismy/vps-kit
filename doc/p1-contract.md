@@ -1,6 +1,8 @@
-# P1 配置、状态与双版本适配契约
+# P1 配置、状态与精确版本适配契约
 
-当前扩展 `0.4.0a2` 的配置 v2 与固定周期见 [E1 契约](vmrack-contract.md)。本文件的 v1 配置与双版本字段规则保留，旧历史不补写 `kind` 或重算摘要。
+2026-11-04 补充：`0.5.0a3` 新增官方 `3.11.0`，保留旧版兼容。新增来源和运行边界见 [适配说明](3x-ui-3.11.0-compatibility.md)，历史评审不改写为三版验收。
+
+当前扩展 `0.4.0a2` 的配置 v2 与固定周期见 [E1 契约](vmrack-contract.md)。本文件的 v1 配置与原有字段规则保留，旧历史不补写 `kind` 或重算摘要。
 
 版本：P1-2，2026-10-24；对应实现 `0.1.0a2`。控制输入：[v0.1.1 方案](vps-traffic-reset-tool-proposal.md)；实现入口：[bin/vps-kit](../bin/vps-kit)。本文件将已批准的 P1 具体化，不授权生产操作。复查变更及证据见 [P1 复查记录](p1-review-20261024.md)。
 
@@ -12,7 +14,7 @@
 |---|---|---|
 | `traffic/config.py` | UTF-8 JSON → 不可变规范化配置 | 严格字段、类型、身份、预算、首次边界；无文件写入 |
 | `traffic/state.py` | 账本＋产生时配置 → 记录分类 | 绑定、顺序、证据结构和跳过理由；无执行、无修复 |
-| `traffic/panel.py` | 版本及 API JSON → 已校验表示 | 双版本差异、对象集合、关联、周期、额度、双态启用 |
+| `traffic/panel.py` | 版本及 API JSON → 已校验表示 | 精确版本差异、对象集合、关联、周期、额度、双态启用 |
 | `traffic/panel_http.py` | 固定 GET 枚举＋受保护凭据 → 有界字节串 | 仅本机，调用预算，无重试、代理、重定向或 TLS 降级 |
 | `traffic/discovery.py` | 配置＋读取器 → 脱敏报告 | 首错停止，成功预算 `1+2N`，不写回配置 |
 | `traffic/host.py` | 固定本机路径/命令 → 环境摘要 | 只读，已知 unit 清单不等于完整任务扫描 |
@@ -43,7 +45,7 @@
 
 | 项目 | 精确规则 |
 |---|---|
-| 版本 | `3.7.0` 或 `3.10.2`；不接受版本范围或自定义后缀 |
+| 版本 | `3.7.0`、`3.10.2` 或 `3.11.0`；不接受版本范围或自定义后缀 |
 | URL | ASCII `https://host[:port][/base]`；无凭据（包括空 userinfo）、查询、片段、空白；端口 1—65535，拒绝尾部空端口；域名 label 合法，拒绝单整数、缩写、八/十六进制等非规范数字 IP 主机名 |
 | base path | 空根路径或 `/` 分隔的 ASCII 字母/数字/下划线/连字符段；无尾 `/`、百分号、点段、通配符；P1 明确收窄以防路由歧义 |
 | 连接地址 | 仅 `127.0.0.1`、`::1`；curl `--connect-to ::127.0.0.1:<port>` 或 `::[::1]:<port>` 通配原主机/端口，固定 TCP 目标且保留原 URL 的 TLS/SNI/Host；IP URL 必须与此地址一致 |
@@ -76,7 +78,7 @@
 
 这不是实际商家计量证明，不把 Client 额度之和再加进入口消耗。合成示例使用商家 500 GiB、入口 250 GiB、两个 Client 分别 150/100 GiB；不表示任何实际 VPS 的当前配置。
 
-## 3. 双版本 API 读取
+## 3. 精确版本 API 读取
 
 `ReadEndpoint` 仅提供三个 GET：
 
@@ -86,11 +88,11 @@
 | CLIENT | `/panel/api/clients/get/{encoded-email}` |
 | TRAFFIC | `/panel/api/clients/traffic/{encoded-email}` |
 
-每份响应要求 HTTP 200、JSON 对象、`success` 严格等于布尔 true、存在 `obj`。数组/对象结构错误、字段漂移、API 错误都停止；不显示服务端 msg。列表按配置中的数值 ID 找入口，再核对 Remark/listen/port/protocol；重复 ID、目标缺失均失败。两个 tag 的 `NodeID *int` 具有 `json:"nodeId,omitempty"`，因此只接受缺键或 null；非 null 值一律拒绝。`originNodeGuid` 只允许缺键或空字符串，非空远程来源及错误类型拒绝。完整内嵌 Client 集合精确匹配，不能自动纳入新成员。这项字段兼容依据两版模型的序列化定义，不放宽 3.10.2 的 resetWeekday 迁移证据要求。
+每份响应要求 HTTP 200、JSON 对象、`success` 严格等于布尔 true、存在 `obj`。数组/对象结构错误、字段漂移、API 错误都停止；不显示服务端 msg。列表按配置中的数值 ID 找入口，再核对 Remark/listen/port/protocol；重复 ID、目标缺失均失败。三个已适配 tag 的 `NodeID *int` 具有 `json:"nodeId,omitempty"`，因此只接受缺键或 null；非 null 值一律拒绝。`originNodeGuid` 只允许缺键或空字符串，非空远程来源及错误类型拒绝。完整内嵌 Client 集合精确匹配，不能自动纳入新成员。这项字段兼容依据已核对模型的序列化定义，不放宽 3.10.2/3.11.0 的 resetWeekday 迁移证据要求。
 
 API 中无关扩展字段允许存在并忽略；影响身份、额度、周期和启用状态的已知字段严格校验。settings 接受 JSON 对象或可严格解析的 JSON 文本。Client 详情必须先通过校验，才读取该 Client 的 traffic。
 
-| 表示 | 3.7.0 与 3.10.2 共同行为 | 3.10.2 增量 |
+| 表示 | 三版本共同行为 | 3.10.2 / 3.11.0 增量 |
 |---|---|---|
 | Inbound | total 与入口配额一致；trafficReset=never、expiryTime 为整数 0；up/down 非负整数 | 同左 |
 | embedded | id=UUID、email/totalGB 正确；reset/expiryTime 为整数 0；缺 resetDay 或 trafficReset 允许；存在时必须 0/never | resetWeekday 必须整数 0；缺键报 `EMBEDDED_WEEKDAY_MIGRATION_UNVERIFIED` |
@@ -101,7 +103,7 @@ API 中无关扩展字段允许存在并忽略；影响身份、额度、周期�
 
 enable 分成配置态和 traffic 态，均必须是显式 bool；traffic 的缺键/null 不得回填配置态。stop 要求两态都 true；quota-recovery 在有限个人额度已耗尽时允许任一态为 false；hold 要求两态都 false。Inbound 到额仅用于入口自己的恢复条件。发现输出 `quota-recovery-eligible` 只说明当前快照符合该条件，不执行恢复，也不承诺下一时刻仍然符合；计数达到限额不能证明禁用一定由配额触发。采用该策略代表允许在满足这些条件时恢复，如需保留人为禁用须使用 hold。
 
-版本适配器还记录未来写路径的顺序差异：3.7.0 先尝试启用再重置；3.10.2 先重置再尝试启用。P1 **仅保留这一契约元数据，完全没有 POST 方法**。不能据此声称已验证清零、异步落库、Xray 重启或代理连通性。
+版本适配器还记录未来写路径的顺序差异：3.7.0 先尝试启用再重置；3.10.2/3.11.0 先重置再尝试启用。P1 **仅保留这一契约元数据，完全没有 POST 方法**。不能据此声称已验证清零、异步落库、Xray 重启或代理连通性。
 
 固定来源及 blob SHA 见 [源码证据索引](p1-source-evidence.json)。主要依据：[3.7.0 Client controller](https://github.com/MHSanaei/3x-ui/blob/v3.7.0/internal/web/controller/client.go)、[3.10.2 Client controller](https://github.com/MHSanaei/3x-ui/blob/v3.10.2/internal/web/controller/client.go)、[3.10.2 Client/Inbound 模型](https://github.com/MHSanaei/3x-ui/blob/v3.10.2/internal/database/model/model.go)、[3.10.2 traffic 模型](https://github.com/MHSanaei/3x-ui/blob/v3.10.2/internal/xray/client_traffic.go)。源码检查与合成验证不升级为真实双版本运行验收。
 
@@ -109,13 +111,13 @@ enable 分成配置态和 traffic 态，均必须是显式 bool；traffic 的缺
 
 生产路径的 CLI 必须显式选择 `--local` 并提供 `--token-file`；不能与 `--fixture` 混用。本轮不在 VPS 执行此模式。执行顺序：读取受保护配置 → Linux/root、OS、PID 1、依赖版本、主机摘要、`x-ui -v` 与服务状态核对 → 读取 Token → 固定 GET。
 
-受保护配置和 Token 文件必须 root:root 0600，拒绝符号链接、非普通文件以及不可信祖先目录。Token 为 48 位字母数字，可带一个末尾 LF；不接受命令行明文 Token。它只经受控 stdin 作为 Authorization 头传入 curl，不放进 argv 或输出。两个 tag 的长度依据已固定在源码索引。
+受保护配置和 Token 文件必须 root:root 0600，拒绝符号链接、非普通文件以及不可信祖先目录。Token 为 48 位字母数字，可带一个末尾 LF；不接受命令行明文 Token。它只经受控 stdin 作为 Authorization 头传入 curl，不放进 argv 或输出。三个 tag 的长度依据已固定在源码索引。
 
 curl 固定路径 `/usr/bin/curl`，首参数 `-q` 禁用个人 curlrc，关闭 URL globbing；禁止代理、重定向、自动重试、TLS 跳过验证及备用地址。连接 3 秒、请求 10 秒、外部进程等待 12 秒；响应体最多 2 MiB，stderr 最多 8 KiB 且不显示。超限/超时杀掉本地读取进程并失败，不重发；Ctrl+C 同样先结束并回收子进程、关闭管道，再返回中断结果。GET 成功不证明 admin scope，报告始终保留 `token_admin_scope=NOT_PROVEN`。
 
 完整成功读取为 `1+2N` 次，两个 Client 为 5 次，16 个为 33 次；遇错立即停止。fixture 模式记录逻辑 read_calls，但 `http_calls=0`。返回值无 Token/URL/UUID 和原始 API 对象。各 GET 之间可能有正常计数增长或并发编辑，报告不是原子快照；它不能用于跳过未来写前复核。`script_writes=0` 指本工具不主动持久化配置、报告、锁或账本，不保证 OS 文件访问时间、系统审计或面板日志/缓存完全不变。
 
-`--local` 只使用本机回环；已用替身校验 argv 和调用预算，并用独立的本地 HTTP 服务验证实际 curl 的双版本合成读取、目标固定及重定向拒绝。未做真实 TLS、IPv6、Linux systemd/权限或 3X-UI 实例集成。回环验证入口为 [tests/loopback_transport.py](../tests/loopback_transport.py)，不属于禁止联网的单元测试入口。
+`--local` 只使用本机回环；已用替身校验 argv 和调用预算，并用独立的本地 HTTP 服务验证实际 curl 的三版本合成读取、目标固定及重定向拒绝。未做真实 TLS、IPv6、Linux systemd/权限或 3X-UI 实例集成。回环验证入口为 [tests/loopback_transport.py](../tests/loopback_transport.py)，不属于禁止联网的单元测试入口。
 
 `status` 无 API、无凭据，读取 OS/Python/systemd/curl、NTP、x-ui、已知旧 VMISS unit，以及显式任务 ID 的新 unit。只使用 `systemctl show`、`--version`、`timedatectl show`。Windows 返回 `LINUX_SYSTEMD_REQUIRED`，不是模拟成功的 Linux 状态。
 
@@ -182,7 +184,7 @@ P2 必须补齐各维护阶段的可执行枚举和原子切换顺序，P3 固�
 
 | 上游需求/约束 | P1 验证入口 | 后续缺口 |
 |---|---|---|
-| R-01、配置/双版本约束 | `test_config.py`、固定两版 fixture | 六组合 Linux 实测 |
+| R-01、配置/精确版本约束 | `test_config.py`、固定三版 fixture | 六组合 Linux 实测 |
 | 多 Client、stop/recovery/hold | `test_panel.py` 的双态真值表、集合/配额/关联反例、16 Client | API 写后恢复、异步变化 |
 | 防重复、历史和修订 | `test_state.py` 与 `test_review_regressions.py` 的 pending/部分完成/最终缺失、双修订、逐目标重复周期 | fsync、锁、原子替换、注册连续性 |
 | 只读、凭据、调用预算 | `test_io_cli.py` 的 argv/stdin、超时/大小、禁用动作、子进程副作用守卫与无 pyc；`test_review_regressions.py` 的 null、URL、JSON、中断；独立 curl 回环测试 | 真实 TLS/IPv6/systemd/文件权限 |

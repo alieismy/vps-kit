@@ -1,6 +1,6 @@
 {
-  "date": "2026-10-24",
-  "scope": "Version-pinned upstream source inspection; not live compatibility validation",
+  "date": "2026-11-04",
+  "scope": "Version-pinned upstream source inspection; 3.11.0 added 2026-11-04; not live compatibility validation",
   "sources": [
     {
       "name": "review370model",
@@ -106,6 +106,66 @@
       "name": "v3.10.2/main.go",
       "url": "https://github.com/MHSanaei/3x-ui/blob/v3.10.2/main.go",
       "blob_sha": "ce88580eb3b40b71712c96b1c53312f804508cff"
+    },
+    {
+      "name": "v3.11.0/internal/web/controller/client.go",
+      "url": "https://github.com/MHSanaei/3x-ui/blob/v3.11.0/internal/web/controller/client.go",
+      "blob_sha": "2c7c5e3ef323362978561cf7f87bf8f0612c6050"
+    },
+    {
+      "name": "v3.11.0/internal/web/controller/inbound.go",
+      "url": "https://github.com/MHSanaei/3x-ui/blob/v3.11.0/internal/web/controller/inbound.go",
+      "blob_sha": "7db982adb0802c7ac4370e82ca00e4cab4a664af"
+    },
+    {
+      "name": "v3.11.0/internal/web/controller/api.go",
+      "url": "https://github.com/MHSanaei/3x-ui/blob/v3.11.0/internal/web/controller/api.go",
+      "blob_sha": "4c9038f16241bc0150bc7618153c9c9bbbe3f2e0"
+    },
+    {
+      "name": "v3.11.0/internal/web/service/client_traffic.go",
+      "url": "https://github.com/MHSanaei/3x-ui/blob/v3.11.0/internal/web/service/client_traffic.go",
+      "blob_sha": "fb05aa5f4c24f94ae86a4bfd3120e4e832d629e9"
+    },
+    {
+      "name": "v3.11.0/internal/web/service/inbound_traffic.go",
+      "url": "https://github.com/MHSanaei/3x-ui/blob/v3.11.0/internal/web/service/inbound_traffic.go",
+      "blob_sha": "fb81293772d9abb8b75713f4aa4078b79420a495"
+    },
+    {
+      "name": "v3.11.0/internal/database/model/model.go",
+      "url": "https://github.com/MHSanaei/3x-ui/blob/v3.11.0/internal/database/model/model.go",
+      "blob_sha": "ec84a53b7742a5f65672af3f9762654abda1092b"
+    },
+    {
+      "name": "v3.11.0/internal/xray/client_traffic.go",
+      "url": "https://github.com/MHSanaei/3x-ui/blob/v3.11.0/internal/xray/client_traffic.go",
+      "blob_sha": "26557673dfb58e09f8ec21ec8ef0c88585523202"
+    },
+    {
+      "name": "v3.11.0/internal/web/service/panel/api_token.go",
+      "url": "https://github.com/MHSanaei/3x-ui/blob/v3.11.0/internal/web/service/panel/api_token.go",
+      "blob_sha": "eda5fcd8f3b4113cd33b8fdd9a17a0e7e5554f9a"
+    },
+    {
+      "name": "v3.11.0/internal/web/job/periodic_traffic_reset_job.go",
+      "url": "https://github.com/MHSanaei/3x-ui/blob/v3.11.0/internal/web/job/periodic_traffic_reset_job.go",
+      "blob_sha": "bc43b7d9060dc0b2f70d957e7de93026ef580ee7"
+    },
+    {
+      "name": "v3.11.0/internal/web/service/traffic_writer.go",
+      "url": "https://github.com/MHSanaei/3x-ui/blob/v3.11.0/internal/web/service/traffic_writer.go",
+      "blob_sha": "e8c43d7a4b30ee088f437ba5b09dffdc7449227f"
+    },
+    {
+      "name": "v3.11.0/main.go",
+      "url": "https://github.com/MHSanaei/3x-ui/blob/v3.11.0/main.go",
+      "blob_sha": "a2fbdce7f03a97dc09ea98cf718fcd73ec84b3d3"
+    },
+    {
+      "name": "v3.11.0/LICENSE",
+      "url": "https://github.com/MHSanaei/3x-ui/blob/v3.11.0/LICENSE",
+      "blob_sha": "f288702d2fa16d3cdf0035b15a9fcbc552cd88e7"
     }
   ]
 }

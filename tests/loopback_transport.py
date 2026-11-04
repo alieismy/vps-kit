@@ -83,7 +83,7 @@ def main():
         numeric_resolve_bypassed = probe.returncode == 0 and probe.stdout == b"loopback\n127.0.0.1"
         assert numeric_resolve_bypassed, "当前 curl 未复现数字 IP 规范化；不能报告该项实测成功"
         total_reads = 0
-        for version in ("3.7.0", "3.10.2"):
+        for version in ("3.7.0", "3.10.2", "3.11.0"):
             d = config_data(version)
             d["panel"].update(url=f"http://127.0.0.1:{port}/example", allow_loopback_http=True)
             config = parse_config(json.dumps(d))

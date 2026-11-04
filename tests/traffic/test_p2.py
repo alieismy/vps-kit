@@ -26,7 +26,7 @@ class P2Tests(unittest.TestCase):
         return execute(journal, lambda c: panel, system, clock)
 
     def test_both_versions_complete_and_repeat_no_requests_or_changes(self):
-        for version in ("3.7.0", "3.10.2"):
+        for version in ("3.7.0", "3.10.2", "3.11.0"):
             root = self.root / version
             root.mkdir()
             h = harness(root, version)

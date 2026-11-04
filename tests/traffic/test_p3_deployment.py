@@ -50,7 +50,7 @@ class DeploymentTests(unittest.TestCase):
         return p
 
     def test_install_both_versions_and_no_write_api(self):
-        for v in ('3.7.0', '3.10.2'):
+        for v in ('3.7.0', '3.10.2', '3.11.0'):
             with self.subTest(version=v), tempfile.TemporaryDirectory() as tmp:
                 h = harness(Path(tmp), parse_config(canonical(config_data(v))))
                 cfg, fs, clock, journal, b, d = h

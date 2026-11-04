@@ -1,6 +1,6 @@
 # 文档索引
 
-当前版本为 `0.5.0a2`，Alpha 预发布。从 [项目首页](../README.md)了解用途、下载和快速体验，从 [CLI 参考](cli.md)核对流量工具及 REALITY 候选探针的动作和副作用，从 [变更记录](../CHANGELOG.md)了解版本范围。探针输入、基线与未验证项集中见 [REALITY 候选探针](cli.md#reality-候选探针)。
+当前版本为 `0.5.0a3`，Alpha 预发布；新增官方 3X-UI `3.11.0` 适配。已发布 `0.5.0a2` 附件不包含此次变更。从 [项目首页](../README.md)了解用途、下载和快速体验，从 [CLI 参考](cli.md)核对流量工具及 REALITY 候选探针的动作和副作用，从 [变更记录](../CHANGELOG.md)了解版本范围。探针输入、基线与未验证项集中见 [REALITY 候选探针](cli.md#reality-候选探针)。
 
 历史文档保留其形成时的版本、批准范围和验证层级。文中的“当前”“本轮”通常指该记录的时间点，不能自动升级为本版本状态。较早计划不因源码已存在而变成真实运行验收记录。
 
@@ -8,8 +8,9 @@
 
 | 入口 | 用途 |
 |---|---|
+| [3X-UI 3.11.0 适配说明](3x-ui-3.11.0-compatibility.md) | 本次上游核对、兼容边界与新增运行验收待办 |
 | [CLI 参考](cli.md) | 所有已实现动作、参数入口及副作用 |
-| [VPS 安装与七地区人工复验](cli.md#vps-安装与七地区人工复验) | `v0.5.0a2` 独立安装、升级、候选 Target/SNI、TLS/HTTP/REALITY 分步复验；美国出口历史测量与当地待验证状态分开记录 |
+| [VPS 安装与七地区人工复验](cli.md#vps-安装与七地区人工复验) | `v0.5.0a3` 独立安装、升级、候选 Target/SNI、TLS/HTTP/REALITY 分步复验；美国出口历史测量与当地待验证状态分开记录 |
 | [开发与贡献](../CONTRIBUTING.md) | 环境、离线回归、curl 回环与贡献边界 |
 | [安全报告](../SECURITY.md) | 漏洞报告及最小材料要求 |
 | [fixture 说明](../tests/traffic/fixtures/README.md) | 合成 JSON、脱敏旧脚本和固定摘要 |
@@ -20,19 +21,19 @@
 
 | 文档 | 范围 |
 |---|---|
-| [P1 配置、状态与双版本适配](p1-contract.md) | v1 字段、身份、预算、API 读取与账本校验 |
+| [P1 配置、状态与精确版本适配](p1-contract.md) | v1 字段、身份、预算、API 读取与账本校验 |
 | [P2 执行与配置切换](p2-contract.md) | 日历、控制历史、执行状态机及 timer 生命周期 |
 | [P3 安装、r2 接管与回退](p3-contract.md) | 包、部署计划、凭据、文件回退与旧来源 |
 | [固定周期与 VMRack 接管](vmrack-contract.md) | 配置 v2、30 天周期、来源核对与首期再确认 |
-| [固定上游源码证据](p1-source-evidence.json) | 两个精确 tag 的契约检查定位；不是现场兼容证明 |
+| [固定上游源码证据](p1-source-evidence.json) | 三个精确 tag 的契约检查定位；不是现场兼容证明 |
 
 ## 设计与未执行的集成验收
 
 | 文档 | 状态与效力 |
 |---|---|
 | [总体方案](vps-traffic-reset-tool-proposal.md) | 历史设计基线；后续实施及验证按相应记录理解 |
-| [固定 30 天扩展方案](vmrack-fixed-30-day-extension-proposal.md) | E0.2-public.1 公开整理版；已移除个人部署关联及用量快照，原稿摘要见文首 |
-| [L2/L3 隔离验收计划](l2-l3-isolated-acceptance-plan.md) | Debian 12/13、Ubuntu 24.04 × 双版本面板六组合；仍为 `NOT_RUN` |
+| [固定 30 天扩展方案](vmrack-fixed-30-day-extension-proposal.md) | E0.2-public.1 历史基线；2026-11-04 追加第三台名称映射指针，原稿摘要见文首 |
+| [L2/L3 隔离验收计划](l2-l3-isolated-acceptance-plan.md) | 历史双版本六组合仍为 `NOT_RUN`；新增 3.11.0 三组合待办见 [适配说明](3x-ui-3.11.0-compatibility.md) |
 | [验收计划首次复查](l2-l3-isolated-acceptance-review-20261024.md) / [后续复查](l2-l3-isolated-acceptance-review-20261025.md) | 计划文档的历史复查，不是集成运行结果 |
 
 个人电脑盘点及私有原始证据不属于公共文档和新发行包。公开文档中保留的来源模板标签、调度常量或摘要用于技术兼容识别，不证明任一主机的当前安装状态。

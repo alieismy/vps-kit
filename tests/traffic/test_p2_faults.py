@@ -86,7 +86,7 @@ class FaultTests(unittest.TestCase):
         self.assertEqual(cases, 30)
 
     def test_recovery_and_hold_both_versions(self):
-        for version in ("3.7.0", "3.10.2"):
+        for version in ("3.7.0", "3.10.2", "3.11.0"):
             root = self.root / version
             root.mkdir()
             d = config_data(version)

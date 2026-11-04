@@ -38,7 +38,7 @@ class FixedFaultTests(unittest.TestCase):
         return h
 
     def test_all_step_intents_and_readback_failures_no_replay_both_versions(self):
-        for version in ('3.7.0','3.10.2'):
+        for version in ('3.7.0','3.10.2','3.11.0'):
             for key in ('client:11','inbound','enable'):
                 for when in ('before_send','after_send'):
                     with self.subTest(version=version,key=key,when=when),tempfile.TemporaryDirectory() as tmp:
@@ -91,7 +91,7 @@ class FixedFaultTests(unittest.TestCase):
                 self.assertEqual(Control(j.load()).unresolved(),[1])
 
     def test_sixteen_shared_pool_hold_and_personal_recovery_both_versions(self):
-        for version in ('3.7.0','3.10.2'):
+        for version in ('3.7.0','3.10.2','3.11.0'):
             with self.subTest(version=version),tempfile.TemporaryDirectory() as tmp:
                 cfg,clock,j,panel,system,_=self.fixture(Path(tmp),version,16)
                 for client in cfg.data['clients']: disable_client(panel,client,client['quota_bytes'])

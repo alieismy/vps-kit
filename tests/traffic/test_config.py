@@ -12,7 +12,7 @@ class ConfigTests(unittest.TestCase):
         return parse_config(json.dumps(d))
 
     def test_both_versions_independent_quotas_and_no_provider_branch(self):
-        for version in ("3.7.0", "3.10.2"):
+        for version in ("3.7.0", "3.10.2", "3.11.0"):
             cfg = self.parse(config_data(version))
             self.assertEqual(cfg.data["panel"]["version"], version)
             self.assertEqual([c["quota_bytes"] for c in cfg.data["clients"]], [150 * 1024**3, 100 * 1024**3])
@@ -20,6 +20,8 @@ class ConfigTests(unittest.TestCase):
     def test_unknown_duplicate_types_limits(self):
         mutations = [lambda d: d.update(extra=True), lambda d: d.update(revision=True),
                      lambda d: d["panel"].update(version="3.10.2+custom"),
+                     lambda d: d["panel"].update(version="3.11.0+custom"),
+                     lambda d: d["panel"].update(version="3.11.1"),
                      lambda d: d["inbound"].update(quota_bytes=0),
                      lambda d: d["clients"][0].update(quota_bytes=1.5),
                      lambda d: d["clients"][0].update(quota_bytes=2**63),

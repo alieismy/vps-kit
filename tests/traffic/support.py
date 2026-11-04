@@ -6,6 +6,11 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[2]
 
 
+def fixture_directory(version):
+    # 新版本数据与发行包使用同一路径，保持 a2 的 manifest 路径兼容。
+    return ROOT / ('doc/fixtures' if version == '3.11.0' else 'tests/traffic/fixtures') / version
+
+
 def config_data(version="3.7.0"):
     return {
         "schema_version": "vps-kit.traffic.config/v1",
@@ -30,7 +35,7 @@ def fixture_data(cfg):
     responses = {}
     for c in cfg["clients"]:
         periods = {"reset": 0, "resetDay": 0, "expiryTime": 0}
-        if cfg["panel"]["version"] == "3.10.2":
+        if cfg["panel"]["version"] in ("3.10.2", "3.11.0"):
             periods["resetWeekday"] = 0
         e = {"id": c["uuid"], "email": c["email"], "totalGB": c["quota_bytes"], "enable": True, **periods}
         # 复现已确认的 embedded 缺字段，不把独立 Client/traffic 一并删键。
@@ -77,8 +82,8 @@ def ledger_data(config):
 
 def write_fixtures():
     from vps_kit.traffic.config import parse_config
-    for version in ("3.7.0", "3.10.2"):
-        directory = ROOT / "tests" / "traffic" / "fixtures" / version
+    for version in ("3.7.0", "3.10.2", "3.11.0"):
+        directory = fixture_directory(version)
         directory.mkdir(parents=True, exist_ok=True)
         data = config_data(version)
         objects = {"config.json": data, "panel.json": fixture_data(data), "ledger.json": ledger_data(parse_config(json.dumps(data)))}

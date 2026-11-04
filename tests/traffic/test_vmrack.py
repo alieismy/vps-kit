@@ -251,8 +251,10 @@ class VMRackDeploymentTests(unittest.TestCase):
         with self.assertRaisesRegex(ContractError,'MISSED_BOUNDARY'): execute(j,lambda _:b.panel,b.new_system,clock)
         self.assertEqual((j.load().head,len(b.panel.reads)),(head,reads))
 
-    def test_official_3102_native_fixed_supported_but_legacy_and_traffic2_refused(self):
-        cfg=config(version='3.10.2'); h=harness(self.root,cfg)
-        with self.assertRaisesRegex(ContractError,'VMRACK_SOURCE_PANEL_VERSION'): self.plan(h,seed(h))
+    def test_newer_official_native_fixed_supported_but_legacy_and_traffic2_refused(self):
+        for version in ('3.10.2','3.11.0'):
+            with self.subTest(version=version),tempfile.TemporaryDirectory() as tmp:
+                cfg=config(version=version); h=harness(Path(tmp),cfg)
+                with self.assertRaisesRegex(ContractError,'VMRACK_SOURCE_PANEL_VERSION'): self.plan(h,seed(h))
         bad=cfg.data; bad['panel']['version']='3.7.0+traffic.2'
         with self.assertRaisesRegex(ContractError,'PANEL_VERSION_UNSUPPORTED'): parse_config(canonical(bad))

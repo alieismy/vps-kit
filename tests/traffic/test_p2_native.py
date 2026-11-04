@@ -38,7 +38,7 @@ class NativeContractTests(unittest.TestCase):
                 self.assertEqual(lock.stat().st_ino, inode)
 
     def test_post_allowlist_token_stdin_and_no_replay_both_versions(self):
-        for version in ("3.7.0", "3.10.2"):
+        for version in ("3.7.0", "3.10.2", "3.11.0"):
             d = config_data(version)
             d["inbound"]["policy"] = "quota-recovery"
             d["clients"][0]["email"] = "a+b@example.test"

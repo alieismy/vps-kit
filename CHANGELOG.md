@@ -2,6 +2,18 @@
 
 本文件记录面向使用者的版本变化及发布状态。测试结果只对实际运行时对应的源码和环境有效。
 
+## 0.5.0a3 — 预发布，2026-11-04
+
+发布类型为 Alpha 开发版，标签 `v0.5.0a3`。来源提交、CI 与附件摘要见 [Release 与发布说明](https://github.com/alieismy/vps-kit/releases/tag/v0.5.0a3)；下载 [开发包 ZIP](https://github.com/alieismy/vps-kit/releases/download/v0.5.0a3/vps-kit-0.5.0a3.zip) 和 [SHA256 摘要](https://github.com/alieismy/vps-kit/releases/download/v0.5.0a3/vps-kit-0.5.0a3.zip.sha256)。
+
+- 新增官方 3X-UI `3.11.0` 精确适配，保留 `3.7.0`、`3.10.2`；同步本机版本守卫、离线包白名单和包内示例。
+- 按上游源码核对字段、逐对象重置顺序、权限及副作用，新增固定来源证据与三份合成 fixture；扩展版本相关回归。旧来源接管仍限已审核 3.7.0。
+- 修复 a3 回退 a2 后新包 manifest 导致 `PACKAGE_PATH` 的兼容问题：新增 JSON 使用旧版已允许的 `doc/fixtures/3.11.0/` 路径，保留历史与旧包不变；增加基于真实 a2 发布包的独立回退回归。
+- README 重整为用途、工具清单、运行条件、命令示例、配置/部署流程和验证边界，明确已发布 0.5.0a2 不包含新适配。
+- 补充第三台 VMRack 名称 `L1.VPS.1C1G.Base`，确认对应 VMRack-18；重置锚点为 `2026-11-16 10:05:00 Asia/Singapore`，即 `2026-11-16T02:05:00Z`，沿用固定 30 天周期。
+
+本次未升级实际面板、接管 VPS 或启用调度。真实 Linux/systemd、3.11.0 API 写入、数据库升级与业务验收仍未执行，见 [适配说明](doc/3x-ui-3.11.0-compatibility.md)。
+
 ## 0.5.0a2 — 预发布，2026-11-01
 
 发布类型为 Alpha 开发版，标签 `v0.5.0a2`。来源提交、CI 与附件摘要见 [Release 与发布说明](https://github.com/alieismy/vps-kit/releases/tag/v0.5.0a2)；下载 [开发包 ZIP](https://github.com/alieismy/vps-kit/releases/download/v0.5.0a2/vps-kit-0.5.0a2.zip) 和 [SHA256 摘要](https://github.com/alieismy/vps-kit/releases/download/v0.5.0a2/vps-kit-0.5.0a2.zip.sha256)。

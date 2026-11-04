@@ -36,9 +36,17 @@ python -B tests/reality_loopback.py
 python -B tests/loopback_transport.py
 ```
 
-该测试要求已有 curl，临时监听 `127.0.0.1` 随机端口，发出 12 次本机合成 HTTP GET，结束后关闭监听。缺少 curl 返回 `NOT_RUN`。通过标识为 `LOOPBACK_TRANSPORT_PASS`，不表示真实 TLS、IPv6、面板或 systemd 集成已经验收。
+该测试要求已有 curl，临时监听 `127.0.0.1` 随机端口，发出 17 次本机合成 HTTP GET（三版适配各 5 次，加 2 次传输边界检查），结束后关闭监听。缺少 curl 返回 `NOT_RUN`。通过标识为 `LOOPBACK_TRANSPORT_PASS`，不表示真实 TLS、IPv6、面板或 systemd 集成已经验收。
 
 Linux 可将上述 `python` 换成 `python3`。源码入口及测试入口会关闭 pyc 写入；任意绕过这些入口的导入方式不享有该保证。
+
+修改发行包成员或部署兼容边界时，还须执行真实旧版本回退回归。事先独立取得 [v0.5.0a2 发布包](https://github.com/alieismy/vps-kit/releases/tag/v0.5.0a2)，将下面路径替换为该 ZIP 的本地位置：
+
+```powershell
+python -B tests/release_rollback.py --previous-package path/to/vps-kit-0.5.0a2.zip
+```
+
+该独立入口固定校验原包 SHA256，缺包或摘要不符即失败，不自动下载，也不接受用当前源码修改版本号的替代包。它在临时目录模拟 a2 安装、完成一个账期、升级当前包并回退；随后用独立 Python 进程加载原版 a2 代码，校验新包、读取完整历史并执行部署审计，检查账本保留、无额外 POST 和暂停状态。旧代码仍拒绝原缺陷路径。通过标识为 `RELEASE_ROLLBACK_PASS`；文件读写是真实临时文件，Linux 权限、systemd 与面板仍是替身，不构成 VPS 运行验收。该检查需要外部提供历史 ZIP，因此不并入无需历史附件的 `tests/run.py`；交付前应分别报告两者结果。
 
 ## 提交问题或改动
 
@@ -54,6 +62,6 @@ Linux 可将上述 `python` 换成 `python3`。源码入口及测试入口会关
 
 仓库 CI 配置位于 `.github/workflows/ci.yml`，使用 Ubuntu 24.04 / Python 3.11 与 Windows 2025 / Python 3.13 两个 hosted runner 组合，复用上述完整回归、curl 回环及合成 TLS 回环测试入口。Windows CI 显式准备 `tzdata`；仓库权限为只读，不需要 VPS 凭据。该工作流文件不随离线 ZIP 分发。
 
-CI 结果只证明对应测试环境，不代替 Debian 12/13、Ubuntu 24.04 与真实双版本面板验收。以实际 workflow 运行结果为准，添加配置不表示已经在 GitHub 运行。
+CI 结果只证明对应测试环境，不代替 Debian 12/13、Ubuntu 24.04 与真实三版本面板验收。以实际 workflow 运行结果为准，添加配置不表示已经在 GitHub 运行。
 
 提交贡献表示你有权按本项目 [MIT License](LICENSE) 提供相应内容。保留必要的第三方来源与许可证信息；独立 API 适配依据见 [源码证据](doc/p1-source-evidence.json)。

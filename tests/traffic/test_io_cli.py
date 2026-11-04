@@ -214,7 +214,7 @@ class HostGuardTests(unittest.TestCase):
         with self.assertRaisesRegex(ContractError, "HOST_BINDING_MISMATCH"):
             self.guard(parse_config(json.dumps(d)))
         d["host_id_sha256"] = hashlib.sha256(b"1" * 32).hexdigest()
-        for version in ("3.7.0", "3.10.2"):
+        for version in ("3.7.0", "3.10.2", "3.11.0"):
             d["panel"]["version"] = version
             cfg = parse_config(json.dumps(d))
             self.assertEqual(self.guard(cfg, "v" + version)["panel_version"], version)

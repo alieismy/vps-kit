@@ -1,4 +1,4 @@
-"""两个 tag 的显式读契约。不存在 POST、setEnable 或重置入口。"""
+"""已核对官方 tag 的显式读契约。不存在 POST、setEnable 或重置入口。"""
 from dataclasses import dataclass
 from enum import Enum
 from urllib.parse import quote
@@ -80,7 +80,7 @@ class Adapter:
         i = matches[0]
         for k in ("remark", "listen", "port", "protocol"):
             require(type(i.get(k)) is type(wanted[k]) and i[k] == wanted[k], "API_INBOUND_BINDING")
-        # 两个 tag 的 NodeID/OriginNodeGuid 均为 omitempty；缺键是明确的序列化行为。
+        # 已适配 tag 的 NodeID/OriginNodeGuid 均为 omitempty；缺键是明确的序列化行为。
         # 只排除响应中可见的远程关联，不能单凭这两项证明整套本地计量拓扑。
         require(i.get("nodeId") is None, "API_REMOTE_NODE")
         require(i.get("originNodeGuid", "") == "", "API_REMOTE_ORIGIN")
@@ -94,7 +94,7 @@ class Adapter:
             boolean(i.get("enable"), "API_ENABLE_TYPE")
             require(i["enable"] is expected_enable, "API_INBOUND_PHASE_DRIFT")
             condition = "phase-matched"
-        # 两个 tag 的 API 可能把 JSON 文本列转换成对象；仅接受这两种表示。
+        # 已适配 tag 的 API 可能把 JSON 文本列转换成对象；仅接受这两种表示。
         settings = json_load(i["settings"]) if type(i.get("settings")) is str else i.get("settings")
         require(type(settings) is dict and type(settings.get("clients")) is list, "API_SETTINGS")
         embedded = settings["clients"]
@@ -144,7 +144,8 @@ class Adapter:
 
 
 ADAPTERS = {"3.7.0": Adapter("3.7.0", False, "enable-then-reset"),
-            "3.10.2": Adapter("3.10.2", True, "reset-then-enable")}
+            "3.10.2": Adapter("3.10.2", True, "reset-then-enable"),
+            "3.11.0": Adapter("3.11.0", True, "reset-then-enable")}
 
 
 def get_adapter(version):

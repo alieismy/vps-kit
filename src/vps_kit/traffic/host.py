@@ -75,7 +75,7 @@ def binding_guard(config, execute=bounded_process):
     require(re.fullmatch(b"[0-9a-f]{32}", mid), "HOST_MACHINE_ID")
     require(hashlib.sha256(mid).hexdigest() == config.data["host_id_sha256"], "HOST_BINDING_MISMATCH")
     version = command(["/usr/local/x-ui/x-ui", "-v"], execute)
-    require(re.fullmatch(r"v?(3\.7\.0|3\.10\.2)", version) and version.removeprefix("v") == config.data["panel"]["version"],
+    require(re.fullmatch(r"v?(3\.7\.0|3\.10\.2|3\.11\.0)", version) and version.removeprefix("v") == config.data["panel"]["version"],
             "HOST_PANEL_VERSION_MISMATCH")
     require(Path("/usr/bin/curl").is_file(), "HOST_CURL_MISSING")
     host["panel_version"] = version.removeprefix("v")

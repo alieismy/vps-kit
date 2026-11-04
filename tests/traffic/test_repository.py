@@ -21,6 +21,7 @@ class RepositoryTests(unittest.TestCase):
         directory = ROOT / "tests/traffic/fixtures"
         lines = (directory / "SHA256SUMS").read_text(encoding="utf-8").splitlines()
         expected = {f"{v}/{n}.json" for v in ("3.7.0", "3.10.2") for n in ("config", "panel", "ledger")}
+        expected |= {f"../../../doc/fixtures/3.11.0/{n}.json" for n in ("config", "panel", "ledger")}
         found = set()
         for line in lines:
             digest, name = line.split("  ")
@@ -57,7 +58,7 @@ class RepositoryTests(unittest.TestCase):
         source = json.loads((ROOT / "doc/p1-source-evidence.json").read_text(encoding="utf-8"))
         for item in source["sources"]:
             self.assertRegex(item["blob_sha"], r"^[a-f0-9]{40}$")
-            self.assertRegex(item["url"], r"^https://github.com/MHSanaei/3x-ui/blob/v3\.(?:7\.0|10\.2)/")
+            self.assertRegex(item["url"], r"^https://github.com/MHSanaei/3x-ui/blob/v3\.(?:7\.0|10\.2|11\.0)/")
 
     def test_release_version_and_p2_command_documentation(self):
         import tomllib

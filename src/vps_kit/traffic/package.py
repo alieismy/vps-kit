@@ -19,7 +19,7 @@ REQUIRED = {'bin/vps-kit', 'pyproject.toml', 'src/vps_kit/__init__.py', 'src/vps
 PUBLIC_ROOT_FILES = ('bin/vps-kit', 'pyproject.toml', 'README.md', 'LICENSE',
                      'SECURITY.md', 'CONTRIBUTING.md', 'CHANGELOG.md')
 PUBLIC_DOCS = (
-    'README.md', 'cli.md',
+    'README.md', 'cli.md', '3x-ui-3.11.0-compatibility.md',
     'l2-l3-isolated-acceptance-plan.md',
     'l2-l3-isolated-acceptance-review-20261024.md',
     'l2-l3-isolated-acceptance-review-20261025.md',
@@ -138,6 +138,8 @@ def build(root, output):
     selected += sorted((root / 'tests').rglob('*.py'))
     selected += [root / 'tests/traffic/fixtures' / name for name in ('README.md', 'SHA256SUMS')]
     selected += sorted((root / 'tests/traffic/fixtures').glob('*/*.json'))
+    # a2 会重新校验保留历史中的新包 manifest；新增 JSON 使用它已允许的 doc/ 路径。
+    selected += [root / 'doc/fixtures/3.11.0' / (name + '.json') for name in ('config', 'panel', 'ledger')]
     selected += sorted((root / 'tests/traffic/fixtures/vmrack').glob('*'))
     selected += [root / 'doc' / name for name in PUBLIC_DOCS]
     require(all(p.is_file() and not p.is_symlink() for p in selected), 'PACKAGE_SOURCE_TYPE')

@@ -15,7 +15,7 @@ from .contracts import (ContractError, MAX_INT, boolean, canonical, digest,
 SCHEMA = "vps-kit.traffic.config/v1"
 SCHEMA_V2 = "vps-kit.traffic.config/v2"
 FIXED_SECONDS = 2592000
-VERSIONS = ("3.7.0", "3.10.2")
+VERSIONS = ("3.7.0", "3.10.2", "3.11.0")
 EMAIL = re.compile(r"[A-Za-z0-9][A-Za-z0-9_.@+-]{0,127}\Z")
 
 

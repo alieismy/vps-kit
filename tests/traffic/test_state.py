@@ -5,7 +5,7 @@ import unittest
 from vps_kit.traffic.config import parse_config
 from vps_kit.traffic.contracts import ContractError
 from vps_kit.traffic.state import inspect_history, inspect_ledger
-from support import config_data, ledger_data, ROOT
+from support import config_data, ledger_data, fixture_directory
 
 
 class StateTests(unittest.TestCase):
@@ -21,9 +21,9 @@ class StateTests(unittest.TestCase):
         self.assertEqual(report["classification"], "COMPLETED_RECORDED")
         self.assertEqual(report["automatic_replay"], "FORBIDDEN")
         self.assertEqual(report["evidence_authenticity"], "NOT_PROVEN")
-        for version in ("3.7.0", "3.10.2"):
+        for version in ("3.7.0", "3.10.2", "3.11.0"):
             cfg = parse_config(json.dumps(config_data(version)))
-            saved = json.loads((ROOT / "tests/traffic/fixtures" / version / "ledger.json").read_text(encoding="utf-8"))
+            saved = json.loads((fixture_directory(version) / "ledger.json").read_text(encoding="utf-8"))
             self.assertEqual(saved, ledger_data(cfg))
             inspect_ledger(json.dumps(saved), cfg)
 

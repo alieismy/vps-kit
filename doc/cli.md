@@ -1,6 +1,6 @@
 # CLI 参考
 
-当前版本为 `0.5.0a2`，Alpha 预发布。在仓库根目录使用 `python -B bin/vps-kit <工具> <动作>`，或在 Linux 中使用 `python3 -B`。查看具体参数：
+当前版本为 `0.5.0a3`，Alpha 预发布，精确适配官方 `3.7.0`、`3.10.2`、`3.11.0`。本页安装指南固定为该版本；新版本范围见 [适配说明](3x-ui-3.11.0-compatibility.md)。在仓库根目录使用 `python -B bin/vps-kit <工具> <动作>`，或在 Linux 中使用 `python3 -B`。查看具体参数：
 
 ```powershell
 python -B bin/vps-kit traffic
@@ -16,7 +16,7 @@ python -B bin/vps-kit reality probe --help
 | `traffic` | 列出当前动作 | 只输出 |
 | `traffic validate-config --config …` | 严格配置校验，输出脱敏摘要 | 读取指定文件，不证明现场一致或权限合规 |
 | `traffic inspect-state --config … --state …` | 按产生时配置核对一份原生账本 | 不读取线上计数，不修复，不重试 |
-| `traffic discover --config … --fixture …` | 双版本合成快照核对 | 无 HTTP、无系统命令 |
+| `traffic discover --config … --fixture …` | 三版本合成快照核对 | 无 HTTP、无系统命令 |
 | `traffic discover --config … --local --token-file …` | 本机环境守卫后执行固定 GET | 已实现但未在真实 Linux/面板运行；真实 Linux/面板集成尚未验收 |
 | `traffic status [--config …]` | 本机平台和已知 unit 的只读状态 | 无 Token/API；Windows 明确报告非目标平台 |
 | `traffic calendar / units --config …` | 下一唤醒、未来 24 个业务边界、首次允许边界 / 生成 unit | 离线输出，无系统命令或写入 |
@@ -113,14 +113,14 @@ HTTP 响应、重定向与实际 REALITY/Xray 连接始终标为 `NOT_TESTED`。
 
 ## VPS 安装与七地区人工复验
 
-本节面向自行维护 VPS 的操作者，随 `v0.5.0a2` 提供，整理日期为 **2026-11-01**。历史 `v0.5.0a1` ZIP 保持原字节，不包含本节后补内容；本节没有改变 CLI、P3 契约或生产验收状态。命令使用下列明确版本，不自动追随未来版本。
+本节面向自行维护 VPS 的操作者，初稿整理于 **2026-11-01**，安装命令于 **2026-11-04** 同步为 `v0.5.0a3`。历史 `v0.5.0a1` ZIP 保持原字节，不包含本节后补内容；本节没有改变 CLI、P3 契约或生产验收状态。命令使用下列明确版本，不自动追随未来版本。
 
-只检测 SNI 时，建议安装到当前用户的独立目录 `$HOME/vps-kit-probe/0.5.0a2`。探针不需要 root、面板 Token、pip 安装或 systemd 服务，不会修改现役 `traffic`、3X-UI 或 Xray；命令示例会下载文件、保存本地报告，并在明确探测时发起网络连接。若由 root 执行，默认目录为 `/root/vps-kit-probe/0.5.0a2`。
+只检测 SNI 时，建议安装到当前用户的独立目录 `$HOME/vps-kit-probe/0.5.0a3`。探针不需要 root、面板 Token、pip 安装或 systemd 服务，不会修改现役 `traffic`、3X-UI 或 Xray；命令示例会下载文件、保存本地报告，并在明确探测时发起网络连接。若由 root 执行，默认目录为 `/root/vps-kit-probe/0.5.0a3`。
 
 | 现场情况 | 本节采用的操作 |
 |---|---|
 | 首次使用，只检测 SNI | 独立目录安装后直接运行 |
-| 旧版也是解压运行 | 保留旧目录，另装 `0.5.0a2`，改用新入口；回退时改回旧入口 |
+| 旧版也是解压运行 | 保留旧目录，另装 `0.5.0a3`，改用新入口；回退时改回旧入口 |
 | 已有受管 `traffic`，此次只检测 SNI | 并行使用独立目录，不改变现役版本 |
 | 需要升级受管的整套工具 | 执行下文 P3 整包升级；禁止直接覆盖现役源码或手工切换 `current` |
 
@@ -143,7 +143,7 @@ curl --version
 apt-get update && apt-get install -y python3 ca-certificates curl
 ```
 
-打开 [v0.5.0a2 发布页](https://github.com/alieismy/vps-kit/releases/tag/v0.5.0a2)，复制正文中的 **该版本 ZIP SHA256**，在下面提示时粘贴；不要使用历史版本摘要。命令下载两个命名附件，不用自动生成的 `Source code` 归档代替。摘要用于核对内容，不是数字签名。
+打开 [v0.5.0a3 发布页](https://github.com/alieismy/vps-kit/releases/tag/v0.5.0a3)，复制正文中的 **该版本 ZIP SHA256**，在下面提示时粘贴；不要使用历史版本摘要。命令下载两个命名附件，不用自动生成的 `Source code` 归档代替。摘要用于核对内容，不是数字签名。
 
 下面整段在子 shell 中执行，任一步失败即停止；已存在的版本目录不覆盖。校验文件采用 CRLF，检查前只规范化其换行，不改 ZIP。
 
@@ -153,8 +153,8 @@ set -eu
 umask 077
 
 base="$HOME/vps-kit-probe"
-version='0.5.0a2'
-url='https://github.com/alieismy/vps-kit/releases/download/v0.5.0a2'
+version='0.5.0a3'
+url='https://github.com/alieismy/vps-kit/releases/download/v0.5.0a3'
 dest="$base/$version"
 
 if [ -e "$dest" ] || [ -L "$dest" ]; then
@@ -162,7 +162,7 @@ if [ -e "$dest" ] || [ -L "$dest" ]; then
   exit 1
 fi
 
-read -r -p '粘贴 v0.5.0a2 发布页的 ZIP SHA256：' sha
+read -r -p '粘贴 v0.5.0a3 发布页的 ZIP SHA256：' sha
 if [[ ! "$sha" =~ ^[0-9a-f]{64}$ ]]; then
   printf '需要发布页提供的 64 位小写十六进制摘要。\n' >&2
   exit 1
@@ -187,12 +187,12 @@ printf '入口：%s/bin/vps-kit\n' "$dest"
 )
 ```
 
-预期两个摘要检查均为 `OK`，包校验返回 `PACKAGE_VALID`、`version=0.5.0a2`、`files=104`，版本命令输出 `0.5.0a2`。`traffic package-verify` 是只读包校验，不调用面板或 systemd。中途失败时保留下载文件和 `.unpack-*` 目录排查，不把它们视为安装成功，也不要覆盖现役目录重试。
+预期两个摘要检查均为 `OK`，包校验返回 `PACKAGE_VALID`、`version=0.5.0a3`、`files=109`，版本命令输出 `0.5.0a3`。`traffic package-verify` 是只读包校验，不调用面板或 systemd。中途失败时保留下载文件和 `.unpack-*` 目录排查，不把它们视为安装成功，也不要覆盖现役目录重试。
 
 设置本次终端入口；新开 SSH 会话后需重新设置该变量：
 
 ```bash
-kit="$HOME/vps-kit-probe/0.5.0a2/bin/vps-kit"
+kit="$HOME/vps-kit-probe/0.5.0a3/bin/vps-kit"
 python3 -B "$kit" --version
 python3 -B "$kit" reality probe --help
 ```
@@ -233,7 +233,7 @@ python3 -B "$kit" reality probe --help
 在拟采用的每台 VPS 上运行。以下以新加坡为例，其他地区只替换 `sni` 为表中同一行的域名；东京两个候选分别运行。报告保存到每次新建的目录，默认不覆盖旧记录。
 
 ```bash
-kit="$HOME/vps-kit-probe/0.5.0a2/bin/vps-kit"
+kit="$HOME/vps-kit-probe/0.5.0a3/bin/vps-kit"
 sni='mirror.sg.gs'
 umask 077
 mkdir -p "$HOME/sni-retest"
@@ -374,8 +374,8 @@ Xray / 客户端版本与指纹：
 下面 `<…>` 均为必须替换的现场值；各阶段成功并审阅结果后，才进入下一阶段。首先在 root 会话设置路径并只读检查：
 
 ```bash
-kit='/root/vps-kit-probe/0.5.0a2/bin/vps-kit'
-pkg='/root/vps-kit-probe/downloads/0.5.0a2/vps-kit-0.5.0a2.zip'
+kit='/root/vps-kit-probe/0.5.0a3/bin/vps-kit'
+pkg='/root/vps-kit-probe/downloads/0.5.0a3/vps-kit-0.5.0a3.zip'
 python3 -B "$kit" traffic deployment-audit --local
 /usr/local/bin/vps-kit traffic check --local --task '<实际任务UUID>'
 ```
@@ -387,19 +387,19 @@ python3 -B "$kit" traffic deployment-plan \
   --local --kind upgrade \
   --config /root/current-traffic.json \
   --package "$pkg" \
-  --package-sha256 '<v0.5.0a2发布页的ZIP-SHA256>' \
+  --package-sha256 '<v0.5.0a3发布页的ZIP-SHA256>' \
   --activation paused \
   --attestations /root/upgrade-attestations.json \
-  --save /root/upgrade-0.5.0a2-plan.json
+  --save /root/upgrade-0.5.0a3-plan.json
 ```
 
-预期 `DEPLOYMENT_PLAN_SAVED`、`version=0.5.0a2`、`timer_changed=false`。保存 `operation_id` 和输出的 `sha256`，核对任务、程序版本、首个/下一合法边界及启用选择。计划不暂停 timer；apply 会暂停并按 `paused` 保持暂停。原本已启用且明确希望升级后恢复调度时，可在**生成计划时**选择 `enabled`；原本暂停只能选择 `paused`。
+预期 `DEPLOYMENT_PLAN_SAVED`、`version=0.5.0a3`、`timer_changed=false`。保存 `operation_id` 和输出的 `sha256`，核对任务、程序版本、首个/下一合法边界及启用选择。计划不暂停 timer；apply 会暂停并按 `paused` 保持暂停。原本已启用且明确希望升级后恢复调度时，可在**生成计划时**选择 `enabled`；原本暂停只能选择 `paused`。
 
 使用计划输出的 **`sha256` 字段**确认，而不是对 JSON 文件执行 `sha256sum` 的结果。升级 plan/apply 均不传 `--credential-file`：
 
 ```bash
 python3 -B "$kit" traffic deployment-apply \
-  --local --plan /root/upgrade-0.5.0a2-plan.json \
+  --local --plan /root/upgrade-0.5.0a3-plan.json \
   --expect-sha256 '<计划输出的sha256>' \
   --package "$pkg"
 ```
@@ -412,7 +412,7 @@ python3 -B "$kit" traffic deployment-apply \
 /usr/local/bin/vps-kit traffic check --local --task '<实际任务UUID>'
 ```
 
-预期版本 `0.5.0a2`、部署 `stage=complete`、任务检查无阻断，并核对 timer 是否符合计划。文件安装完成不能单独证明 timer 已恢复。若计划选择暂停且操作者确认恢复条件已经满足，再显式恢复；不要将本命令与 apply 连成无条件执行脚本：
+预期版本 `0.5.0a3`、部署 `stage=complete`、任务检查无阻断，并核对 timer 是否符合计划。文件安装完成不能单独证明 timer 已恢复。若计划选择暂停且操作者确认恢复条件已经满足，再显式恢复；不要将本命令与 apply 连成无条件执行脚本：
 
 ```bash
 /usr/local/bin/vps-kit traffic resume --local --task '<实际任务UUID>'
@@ -430,7 +430,7 @@ python3 -B "$kit" traffic deployment-audit --local
 
 ### 本节命令核验范围
 
-2026-11-01，本节初稿针对 `v0.5.0a1` 命令完成以下检查，证据层级分别记录。`v0.5.0a2` 已同步版本、安装目录和摘要输入方式；最终发布提交的命令核验、CI 和附件校验见 [本版本发布说明](https://github.com/alieismy/vps-kit/releases/tag/v0.5.0a2)，不得将初稿检查自动视为新附件验证。
+2026-11-01，本节初稿针对 `v0.5.0a1` 命令完成以下检查，证据层级分别记录。`v0.5.0a3` 已同步版本、安装目录和摘要输入方式；最终发布提交的命令核验、CI 和附件校验见 [本版本发布说明](https://github.com/alieismy/vps-kit/releases/tag/v0.5.0a3)，不得将初稿检查自动视为新附件验证。
 
 | 检查 | 结果与边界 |
 |---|---|
@@ -447,6 +447,6 @@ python3 -B "$kit" traffic deployment-audit --local
 
 配置与字段规则见 [P1 契约](p1-contract.md)，月日历、控制及执行规则见 [P2 契约](p2-contract.md)，安装、r2 接管和回退见 [P3 契约](p3-contract.md)，固定周期与 VMRack 接管见 [扩展契约](vmrack-contract.md)。历史契约中的阶段号、版本和样例包名称按其原有时间点理解，当前公开准备变化见 [变更记录](../CHANGELOG.md)。
 
-两个面板适配器只承认精确版本。`nodeId` 缺键/null 与其他字段的缺失规则不同；Client 周期字段和 Inbound 周期字段分别核对。`quota-recovery` 仅恢复该对象本人有限额度耗尽且策略允许的状态，入口满额不代表所有 Client 均可恢复。共享总池与商家预算分别核对。
+三个面板适配器只承认精确版本。`nodeId` 缺键/null 与其他字段的缺失规则不同；Client 周期字段和 Inbound 周期字段分别核对。`quota-recovery` 仅恢复该对象本人有限额度耗尽且策略允许的状态，入口满额不代表所有 Client 均可恢复。共享总池与商家预算分别核对。
 
 GET 读取是分步快照；`script_writes=0` 不承诺面板没有访问日志。Windows 下共享锁和目录同步测试使用模型，真实 Linux flock、目录 fsync、systemd/cgroup、LoadCredential、TLS 和面板 POST 副作用仍需隔离验收。包摘要用于核对内容，不能单独证明作者身份。
