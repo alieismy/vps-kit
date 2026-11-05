@@ -1,0 +1,45 @@
+{
+  "schema_version": "vps-kit.traffic.config/v2",
+  "task_id": "<自动生成>",
+  "revision": 1,
+  "host_id_sha256": "<本机计算>",
+  "panel_binding_id": "<自动生成>",
+  "panel": {
+    "version": "3.11.0",
+    "url": "http://127.0.0.1:2053/REPLACE_WEB_BASE_PATH",
+    "connect_address": "127.0.0.1",
+    "allow_loopback_http": true
+  },
+  "inbound": {
+    "id": 0,
+    "remark": "<读取>",
+    "listen": "<读取>",
+    "port": 443,
+    "protocol": "vless",
+    "quota_bytes": 322122547200,
+    "policy": "quota-recovery"
+  },
+  "clients": [
+    {
+      "record_id": 0,
+      "uuid": "<读取>",
+      "email": "<读取>",
+      "quota_bytes": 322122547200,
+      "policy": "quota-recovery"
+    }
+  ],
+  "schedule": {
+    "kind": "fixed-interval",
+    "anchor_utc": "REPLACE_ANCHOR_UTC",
+    "interval_seconds": 2592000,
+    "timezone": "UTC",
+    "first_boundary_utc": "REPLACE_FIRST_BOUNDARY_UTC"
+  },
+  "provider": {
+    "amount": "600",
+    "unit": "GiB",
+    "model": "proxy-duplex-2",
+    "reserve_percent": 0,
+    "other_reserved_bytes": 0
+  }
+}

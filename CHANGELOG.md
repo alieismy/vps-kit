@@ -2,6 +2,15 @@
 
 本文件记录面向使用者的版本变化及发布状态。测试结果只对实际运行时对应的源码和环境有效。
 
+## 0.5.0a6-support-r1 — 配套预发布，2026-11-05
+
+独立配套修订，标签 [v0.5.0a6-support-r1](https://github.com/alieismy/vps-kit/releases/tag/v0.5.0a6-support-r1)；程序版本仍为 `0.5.0a6`，命名程序 ZIP 与发布摘要保持原字节。
+
+- 修复 Windows 配套打包继承 `0777/0666` 权限的问题：tar 显式固定 root:root、目录 `0700`、普通文件 `0600`，拒绝额外成员和已有输出目录。
+- 纳入配套构建器、原始 helper/模板及归档回归；保留 helper 的原始换行与固定摘要，避免 Git 转换导致重建归档变化。
+- CI 增加 Windows 归档检查和 Linux root 解包/权限拒绝路径检查。实际结果与下载验证见 Release；历史本地验证快照保持当时状态。
+- 本次不重建 a6 程序、不修改运行守卫、不操作 VPS；已受管部署无需因附件修订重装或重新启用。
+
 ## 0.5.0a6 — 预发布，2026-11-05
 
 发布类型为 Alpha 开发版，标签 `v0.5.0a6`。来源提交、验证和附件摘要见 [Release 与发布说明](https://github.com/alieismy/vps-kit/releases/tag/v0.5.0a6)；下载 [开发包 ZIP](https://github.com/alieismy/vps-kit/releases/download/v0.5.0a6/vps-kit-0.5.0a6.zip) 和 [SHA256 摘要](https://github.com/alieismy/vps-kit/releases/download/v0.5.0a6/vps-kit-0.5.0a6.zip.sha256)。
