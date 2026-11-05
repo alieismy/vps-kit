@@ -7,7 +7,7 @@
 
 仓库包含 Python 源码、合成测试、离线打包工具和操作文档。它不安装或升级 3X-UI/Xray，不创建代理节点，也不修改服务商的流量账单；流量重置操作的对象是 **3X-UI 面板计数**。
 
-**当前源码版本：`0.5.0a5`，未发布的本地修复候选。** 修复首次安装时 systemd 空匹配被误判为主机命令失败的问题，并保留 a4 的 3X-UI `3.11.0` 本机来源 GUID 修复，保留 `3.7.0`、`3.10.2`；详见 [适配说明](doc/3x-ui-3.11.0-compatibility.md)。源码核对和本地测试不代表真实面板写入、Linux/systemd 或生产业务验收完成。
+**当前版本：`0.5.0a6`，Alpha 预发布。** 修复首次安装时 systemd 空匹配被误判为主机命令失败的问题，并保留 a4 的 3X-UI `3.11.0` 本机来源 GUID 修复，保留 `3.7.0`、`3.10.2`；详见 [适配说明](doc/3x-ui-3.11.0-compatibility.md)。源码核对和本地测试不代表真实面板写入、Linux/systemd 或生产业务验收完成。
 
 ## 从哪里开始
 
@@ -22,9 +22,9 @@
 
 ## 获取代码与运行条件
 
-`0.5.0a5` 尚无公开下载或 CI 结果，应使用经独立校验的候选包。以下是原发布包的历史入口；`0.5.0a3` 包含本机非空 `originNodeGuid` 被拒绝的已知缺陷，不应用于继续该失败场景。
+本版发布 a4/a5 的两项修复；a4/a5 保留为未发布本地候选，原包不覆盖。历史 `0.5.0a3` 包含本机非空 `originNodeGuid` 被拒绝的已知缺陷，不应用于继续该失败场景。
 
-从 [v0.5.0a3 发布页](https://github.com/alieismy/vps-kit/releases/tag/v0.5.0a3)下载带 manifest 的 [ZIP](https://github.com/alieismy/vps-kit/releases/download/v0.5.0a3/vps-kit-0.5.0a3.zip) 和 [SHA256](https://github.com/alieismy/vps-kit/releases/download/v0.5.0a3/vps-kit-0.5.0a3.zip.sha256)，核对摘要后解压运行。历史 `v0.5.0a2` 附件保持原样，不包含此次 `3.11.0` 适配。GitHub 的 `Source code` 归档与带 manifest 的开发包不同。
+从 [v0.5.0a6 发布页](https://github.com/alieismy/vps-kit/releases/tag/v0.5.0a6)下载带 manifest 的 [ZIP](https://github.com/alieismy/vps-kit/releases/download/v0.5.0a6/vps-kit-0.5.0a6.zip) 和 [SHA256](https://github.com/alieismy/vps-kit/releases/download/v0.5.0a6/vps-kit-0.5.0a6.zip.sha256)，核对摘要后解压运行。历史 `v0.5.0a2` 附件保持原样，不包含此次 `3.11.0` 适配。GitHub 的 `Source code` 归档与带 manifest 的开发包不同。
 
 运行期 Python 代码仅使用标准库，无需 `pip install`；当前未注册 pip console script。以下命令均在源码根目录执行，Linux 将 `python` 换成 `python3`。
 
@@ -51,7 +51,7 @@ python -B bin/vps-kit traffic calendar --config doc/fixtures/3.11.0/config.json
 python -B bin/vps-kit traffic units --config doc/fixtures/3.11.0/config.json
 ```
 
-这些命令不读真实凭据、不发送 HTTP、不修改 timer/service；`units` 只输出 unit 文本。预期依次可见 `0.5.0a5`、帮助、`CONFIG_VALID`、`READ_CONTRACT_PASS`、`STATE_CONTRACT_VALID`、日历预览和 unit 文本。合成发现应标记 `evidence_mode=SYNTHETIC`、`http_calls=0`、`read_calls=5`。样例账本的“已完成”仅是测试数据。
+这些命令不读真实凭据、不发送 HTTP、不修改 timer/service；`units` 只输出 unit 文本。预期依次可见 `0.5.0a6`、帮助、`CONFIG_VALID`、`READ_CONTRACT_PASS`、`STATE_CONTRACT_VALID`、日历预览和 unit 文本。合成发现应标记 `evidence_mode=SYNTHETIC`、`http_calls=0`、`read_calls=5`。样例账本的“已完成”仅是测试数据。
 
 ### 支持什么
 
@@ -125,7 +125,7 @@ python -B bin/vps-kit reality probe --from-scanner candidates.csv --port 443 > p
 
 探针逐地址检查 TLS 1.3、X25519、ALPN h2、证书链/有效期/SAN 名称匹配。逐项查看结果：`BASELINE_PASS` 为本次基线通过，`BASELINE_FAIL` 为明确不符合，`INCOMPLETE` 为证据不完整。顶层 `PROBE_COMPLETE` 只代表流程结束。退出码 `0/1/2` 分别对应全部基线通过、存在失败或未完成、输入/环境/运行错误；详情见 [结果边界](doc/cli.md#检查与结果边界)。
 
-它不发送 HTTP、不修改面板或 Xray、不运行扫描器。TLS 通过后仍要在实际 VPS 上验证 HTTP 行为与 Xray/客户端连接；不证明长期稳定性或抗封锁效果。七地区候选和手工复验见 [安装与人工复验指南](doc/cli.md#vps-安装与七地区人工复验)，安装命令固定为 `0.5.0a3`。
+它不发送 HTTP、不修改面板或 Xray、不运行扫描器。TLS 通过后仍要在实际 VPS 上验证 HTTP 行为与 Xray/客户端连接；不证明长期稳定性或抗封锁效果。七地区候选和手工复验见 [安装与人工复验指南](doc/cli.md#vps-安装与七地区人工复验)，安装命令固定为 `0.5.0a6`。
 
 ## 开发与打包
 
@@ -142,8 +142,8 @@ python -B bin/vps-kit traffic package-verify --help
 如需生成离线包，在仓库根目录执行下列命令，输出文件必须尚不存在；将构建输出的 `sha256` 值代入校验命令。包内同时包含三版本合成示例，不能直接当作生产配置：
 
 ```powershell
-python -B bin/vps-kit traffic package-build --source . --output vps-kit-0.5.0a5.zip
-python -B bin/vps-kit traffic package-verify --package vps-kit-0.5.0a5.zip --expect-sha256 '<构建输出的sha256>'
+python -B bin/vps-kit traffic package-build --source . --output vps-kit-0.5.0a6.zip
+python -B bin/vps-kit traffic package-verify --package vps-kit-0.5.0a6.zip --expect-sha256 '<构建输出的sha256>'
 ```
 
 | 目录 | 内容 |
