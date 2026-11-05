@@ -7,7 +7,7 @@ from dataclasses import dataclass
 
 from .config import panel_url
 from .contracts import ContractError, MAX_BYTES, read_file, require
-from .panel import ReadEndpoint
+from .panel import ReadEndpoint, snapshot_read_budget
 
 
 @dataclass(frozen=True)
@@ -109,7 +109,7 @@ class LocalPanelReader:
         self._token = token
         self.execute = execute
         self.attempts = 0
-        self.budget = 1 + 2 * len(config.data["clients"])
+        self.budget = snapshot_read_budget(config)
 
     def get(self, endpoint, email=None):
         require(isinstance(endpoint, ReadEndpoint), "API_ENDPOINT_NOT_ALLOWED")

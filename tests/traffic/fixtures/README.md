@@ -7,7 +7,7 @@
 - 全部为合成数据，不是面板抓包或生产配置；`.invalid` 域名、零前缀 UUID 和零主机摘要仅供测试。
 - panel 按精确 GET 路径索引，固定两个 Client，共 5 次逻辑读取。没有 Token 字段。
 - 每版 embedded 故意省略 resetDay/trafficReset，3.10.2/3.11.0 保留必填 resetWeekday；独立 detail/traffic 不省略必需字段。
-- 固定 panel 样例保留显式 `nodeId=null`；三版模型 omitempty 省略该键的常规输出，以及远程 originNodeGuid 反例，由 [复查回归测试](../test_review_regressions.py) 单独覆盖。
+- 固定 panel 样例保留显式 `nodeId=null`；三版模型 omitempty 省略该键的常规输出，以及旧版远程 originNodeGuid 反例，由 [复查回归测试](../test_review_regressions.py) 单独覆盖。3.11.0 读取时注入本机 GUID、status 独立核验、远程及异常来源拒绝由 [来源回归](../test_origin_guid.py) 覆盖；固定 JSON 保留原字节。
 - ledger 是合成“已完成记录”，不表示任何请求真的发送过；最终计数为正，以防把“永远为零”写成验收条件。
 - [SHA256SUMS](SHA256SUMS) 固定样例原字节。测试同时核对原字节哈希和合成生成源语义；更新契约时应一起审核，不自动接受新哈希。
 

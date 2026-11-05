@@ -24,13 +24,14 @@ class ReviewRegressions(unittest.TestCase):
             fixture = fixture_data(d)
             inbound = fixture["responses"]["/panel/api/inbounds/list"]["obj"][0]
             del inbound["nodeId"]
-            # 两版 model.Inbound 的 *int nodeId 使用 omitempty，空值可以不出现在响应里。
+            # 三版 model.Inbound 的 *int nodeId 使用 omitempty，空值可以不出现在响应里。
             self.assertEqual(discover(cfg, FixtureReader(fixture, cfg), "SYNTHETIC")["result"], "READ_CONTRACT_PASS")
             inbound["originNodeGuid"] = ""
             discover(cfg, FixtureReader(fixture, cfg), "SYNTHETIC")
             for value in ("synthetic-remote-node", None, False, 0):
                 inbound["originNodeGuid"] = value
-                with self.subTest(version=version, origin=value), self.assertRaisesRegex(ContractError, "API_REMOTE_ORIGIN"):
+                code = "API_ORIGIN_GUID" if version == "3.11.0" else "API_REMOTE_ORIGIN"
+                with self.subTest(version=version, origin=value), self.assertRaisesRegex(ContractError, code):
                     discover(cfg, FixtureReader(fixture, cfg), "SYNTHETIC")
             inbound.pop("originNodeGuid")
             for value in (1, 0, "", False):

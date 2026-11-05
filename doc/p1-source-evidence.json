@@ -1,6 +1,6 @@
 {
-  "date": "2026-11-04",
-  "scope": "Version-pinned upstream source inspection; 3.11.0 added 2026-11-04; not live compatibility validation",
+  "date": "2026-11-05",
+  "scope": "Version-pinned upstream source inspection; 3.11.0 added 2026-11-04; not live compatibility validation; 2026-11-05 local origin annotation and independent status identity inspection",
   "sources": [
     {
       "name": "review370model",
@@ -166,6 +166,31 @@
       "name": "v3.11.0/LICENSE",
       "url": "https://github.com/MHSanaei/3x-ui/blob/v3.11.0/LICENSE",
       "blob_sha": "f288702d2fa16d3cdf0035b15a9fcbc552cd88e7"
+    },
+    {
+      "name": "v3.11.0/internal/web/controller/server.go",
+      "url": "https://github.com/MHSanaei/3x-ui/blob/v3.11.0/internal/web/controller/server.go",
+      "blob_sha": "a7a13848b83930b4e5b1862ceebbbd2c010441ea"
+    },
+    {
+      "name": "v3.11.0/internal/web/service/inbound.go",
+      "url": "https://github.com/MHSanaei/3x-ui/blob/v3.11.0/internal/web/service/inbound.go",
+      "blob_sha": "3bfdbc9d8fd6674846f9508b045964ed95b3d386"
+    },
+    {
+      "name": "v3.11.0/internal/web/service/inbound_node.go",
+      "url": "https://github.com/MHSanaei/3x-ui/blob/v3.11.0/internal/web/service/inbound_node.go",
+      "blob_sha": "4e8035af90b8278ab22efc80d957c8c4f3798d07"
+    },
+    {
+      "name": "v3.11.0/internal/web/service/server.go",
+      "url": "https://github.com/MHSanaei/3x-ui/blob/v3.11.0/internal/web/service/server.go",
+      "blob_sha": "6a6a15b935b4767b9c4d8f41b513a48f122c7cb8"
+    },
+    {
+      "name": "v3.11.0/internal/web/service/setting.go",
+      "url": "https://github.com/MHSanaei/3x-ui/blob/v3.11.0/internal/web/service/setting.go",
+      "blob_sha": "b7a9df2051ad7092b2cf87295f2e434016e63b90"
     }
   ]
 }

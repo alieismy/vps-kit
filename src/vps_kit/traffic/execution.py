@@ -6,7 +6,7 @@ from .calendar import WINDOW_SECONDS, stamp
 from .contracts import ContractError, require, utc
 from .control import Control, commit
 from .journal import check_lock_identities
-from .panel import ReadEndpoint, get_adapter, recovery
+from .panel import ReadEndpoint, get_adapter, recovery, snapshot_read_budget
 from .state import EXECUTION_SCHEMA
 
 
@@ -14,7 +14,7 @@ def observe(config, panel, expected=None):
     d = config.data
     adapter = get_adapter(d["panel"]["version"])
     embedded, inbound = adapter.inbound(panel.get(ReadEndpoint.INBOUNDS), config,
-                                       None if expected is None else expected["inbound"]["enabled"])
+                                       None if expected is None else expected["inbound"]["enabled"], reader=panel)
     result = {"inbound": {"enabled": inbound["enabled"], "used_bytes": inbound["used_bytes"]}}
     for c in d["clients"]:
         key = "client:" + str(c["record_id"])
@@ -93,7 +93,7 @@ def execute(journal, panel_factory, runtime, clock):
         runtime.guard(config, control)
         fence = ClockFence(clock, due)
         max_writes = sum(c["policy"] != "hold" for c in cfg["clients"]) + 2
-        panel = BudgetPanel(panel_factory(config), (1 + 2 * len(cfg["clients"])) * (2 + 2 * max_writes), max_writes, fence)
+        panel = BudgetPanel(panel_factory(config), snapshot_read_budget(config) * (2 + 2 * max_writes), max_writes, fence)
         initial = observe(config, panel)
         steps = []
         for c in cfg["clients"]:

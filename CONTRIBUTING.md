@@ -36,7 +36,7 @@ python -B tests/reality_loopback.py
 python -B tests/loopback_transport.py
 ```
 
-该测试要求已有 curl，临时监听 `127.0.0.1` 随机端口，发出 17 次本机合成 HTTP GET（三版适配各 5 次，加 2 次传输边界检查），结束后关闭监听。缺少 curl 返回 `NOT_RUN`。通过标识为 `LOOPBACK_TRANSPORT_PASS`，不表示真实 TLS、IPv6、面板或 systemd 集成已经验收。
+该测试要求已有 curl，临时监听 `127.0.0.1` 随机端口，发出 18 次本机合成 HTTP GET（3.7.0/3.10.2 各 5 次，3.11.0 含身份核验共 6 次，加 2 次传输边界检查），结束后关闭监听。缺少 curl 返回 `NOT_RUN`。通过标识为 `LOOPBACK_TRANSPORT_PASS`，不表示真实 TLS、IPv6、面板或 systemd 集成已经验收。
 
 Linux 可将上述 `python` 换成 `python3`。源码入口及测试入口会关闭 pyc 写入；任意绕过这些入口的导入方式不享有该保证。
 

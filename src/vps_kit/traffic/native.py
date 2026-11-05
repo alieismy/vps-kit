@@ -1,5 +1,6 @@
 """Linux/systemd 适配器。固定本机路径；测试必须注入命令替身，不在开发机执行。"""
 import hashlib
+from fnmatch import fnmatchcase
 import os
 from pathlib import Path
 import platform
@@ -244,9 +245,9 @@ class NativeSystem:
     def program_sha256(self):
         return program_hash()
 
-    def _run(self, *args):
+    def _run(self, *args, limit=32768):
         check_lock_identities()
-        return command(["/usr/bin/systemctl", *args], self.execute)
+        return command(["/usr/bin/systemctl", *args], self.execute, limit=limit)
 
     def _foreign(self, config):
         names = set(render(config))
@@ -254,9 +255,19 @@ class NativeSystem:
             from .sources import paths
             self.legacy_check(config)
             names |= {paths(self.legacy_kind)['timer'], paths(self.legacy_kind)['service']}
-        units = self._run("list-unit-files", "--no-legend", "--no-pager", "vps-kit-traffic-*", "vmiss-3xui-traffic-reset.*", 'vmrack-3xui-traffic-reset.*')
+        patterns = ("vps-kit-traffic-*", "vmiss-3xui-traffic-reset.*", "vmrack-3xui-traffic-reset.*")
+        # systemd 257 对模式无匹配的 list-unit-files 返回 1，不能与真正的查询失败混同。
+        # 无模式成功枚举后再筛选；仍拒绝任何非零退出码，且不重试失败查询。
+        units = self._run("list-unit-files", "--no-legend", "--no-pager", "--full", limit=256 * 1024)
+        for line in units.splitlines():
+            if not line.strip():
+                continue
+            columns = line.split()
+            require(len(columns) in (2, 3) and "." in columns[0], "SYSTEMD_UNIT_FILES_FORMAT")
+            if any(fnmatchcase(columns[0], pattern) for pattern in patterns):
+                require(columns[0] in names, "FOREIGN_OR_R2_TASK_P3_REQUIRED")
         loaded = self._run("list-units", "--all", "--plain", "--no-legend", "--no-pager", "vps-kit-traffic-*", "vmiss-3xui-traffic-reset.*", 'vmrack-3xui-traffic-reset.*')
-        for line in (units + "\n" + loaded).splitlines():
+        for line in loaded.splitlines():
             if not line.strip():
                 continue
             name = line.split()[0]

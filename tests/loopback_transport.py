@@ -88,6 +88,12 @@ def main():
             d["panel"].update(url=f"http://127.0.0.1:{port}/example", allow_loopback_http=True)
             config = parse_config(json.dumps(d))
             context["responses"] = fixture_data(d)["responses"]
+            if version == "3.11.0":
+                guid = "11111111-1111-4111-8111-111111111111"
+                inbound = context["responses"]["/panel/api/inbounds/list"]["obj"][0]
+                inbound.pop("nodeId")
+                inbound["originNodeGuid"] = guid
+                context["responses"]["/panel/api/server/status"] = {"success": True, "obj": {"panelGuid": guid}}
 
             def execute(args, **kwargs):
                 assert args[0] == "/usr/bin/curl"
@@ -98,7 +104,7 @@ def main():
 
             reader = LocalPanelReader(config, token, execute)
             report = discover(config, reader, "LOCAL_LIVE_GET")
-            assert report["read_calls"] == 5 and report["result"] == "READ_CONTRACT_PASS"
+            assert report["read_calls"] == (6 if version == "3.11.0" else 5) and report["result"] == "READ_CONTRACT_PASS"
             total_reads += reader.attempts
         context["redirect"] = True
         before_redirect = context["calls"]

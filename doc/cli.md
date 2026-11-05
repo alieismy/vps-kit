@@ -1,6 +1,8 @@
 # CLI 参考
 
-当前版本为 `0.5.0a3`，Alpha 预发布，精确适配官方 `3.7.0`、`3.10.2`、`3.11.0`。本页安装指南固定为该版本；新版本范围见 [适配说明](3x-ui-3.11.0-compatibility.md)。在仓库根目录使用 `python -B bin/vps-kit <工具> <动作>`，或在 Linux 中使用 `python3 -B`。查看具体参数：
+当前源码 `0.5.0a5` 是未发布候选，包含 a4 的 GUID 修复与首次安装空匹配修复。本文 a3 下载示例属于原发布包，不包含本机 GUID 修复；候选使用独立文件名、摘要和目录，不覆盖 a3。3.11.0 的非空来源会增加一次本机 `/panel/api/server/status` GET，先核对本机 `panelGuid`，错误即停止。
+
+原发布版本为 `0.5.0a3`，Alpha 预发布，声明适配官方 `3.7.0`、`3.10.2`、`3.11.0`。本页公开下载指南固定为该历史版本；3.11.0 来源判断缺陷及 a4 修复范围见 [适配说明](3x-ui-3.11.0-compatibility.md)。在仓库根目录使用 `python -B bin/vps-kit <工具> <动作>`，或在 Linux 中使用 `python3 -B`。查看具体参数：
 
 ```powershell
 python -B bin/vps-kit traffic

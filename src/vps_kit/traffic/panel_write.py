@@ -2,6 +2,7 @@
 from urllib.parse import quote
 
 from .contracts import MAX_BYTES, json_load, require
+from .panel import snapshot_read_budget
 from .panel_http import LocalPanelReader, bounded_process, curl_arguments
 
 
@@ -9,9 +10,8 @@ class LocalPanelSession:
     def __init__(self, config, token, execute=bounded_process):
         self.config = config
         self.reader = LocalPanelReader(config, token, execute)
-        n = len(config.data["clients"])
         m = sum(c["policy"] != "hold" for c in config.data["clients"])
-        self.reader.budget = (1 + 2 * n) * (2 + 2 * (m + 2))
+        self.reader.budget = snapshot_read_budget(config) * (2 + 2 * (m + 2))
         self.sent = set()
 
     def get(self, endpoint, email=None):

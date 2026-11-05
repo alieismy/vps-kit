@@ -1,6 +1,6 @@
 # 3X-UI v3.11.0 适配说明
 
-日期：2026-11-04。对应 `vps-kit 0.5.0a3` Alpha 预发布。本次升级的是工具的面板适配目标，不是执行 VPS 上的面板安装或数据库升级。保留官方 `3.7.0`、`3.10.2` 兼容性，新增官方精确 `3.11.0`；未知版本及定制后缀继续拒绝。
+日期：2026-11-05。当前对应 `vps-kit 0.5.0a5` 未发布本地修复候选；保留下文 a3 发布与历史回退记录。本次升级的是工具的面板适配目标，不是执行 VPS 上的面板安装或数据库升级。保留官方 `3.7.0`、`3.10.2` 兼容性，新增官方精确 `3.11.0`；未知版本及定制后缀继续拒绝。
 
 ## 上游核对与实现判断
 
@@ -10,14 +10,36 @@
 |---|---|---|
 | GET 路由及对象绑定 | 沿用入口 list、Client get/traffic；详情仍提供 `client` 和 `inboundIds`。仍要求完整客户端集合和单入口关联 | [Client controller](https://github.com/MHSanaei/3x-ui/blob/v3.11.0/internal/web/controller/client.go)、[Inbound controller](https://github.com/MHSanaei/3x-ui/blob/v3.11.0/internal/web/controller/inbound.go) |
 | 周期字段 | `resetWeekday` 仍存在且 0 表示关闭；embedded/detail/traffic 均要求显式整数 0，不放宽缺键迁移规则 | [模型](https://github.com/MHSanaei/3x-ui/blob/v3.11.0/internal/database/model/model.go)、[traffic 模型](https://github.com/MHSanaei/3x-ui/blob/v3.11.0/internal/xray/client_traffic.go) |
-| 本地入口 | `nodeId`、`originNodeGuid` 的 omitempty 定义保留；缺键分别按 null/空字符串接受，存在远程关联仍拒绝 | [模型](https://github.com/MHSanaei/3x-ui/blob/v3.11.0/internal/database/model/model.go) |
+| 本地入口 | `nodeId` 只接受缺键/null；`GetInbounds` 为本机入口注入 panelGuid，非空 originNodeGuid 须与独立 status GET 返回的本面板 GUID 一致。缺键/空来源沿用原规则；不把 GUID 比对升级为完整计量拓扑证明 | [列表服务](https://github.com/MHSanaei/3x-ui/blob/v3.11.0/internal/web/service/inbound.go)、[status 服务](https://github.com/MHSanaei/3x-ui/blob/v3.11.0/internal/web/service/server.go) |
 | 逐 Client 重置 | `ResetTrafficByEmail` 先重置再尝试启用，启用失败可能只记日志。因此沿用 `reset-then-enable` 模型，仍必须 GET 读回验证，不能仅凭 success 认定恢复 | [Client service](https://github.com/MHSanaei/3x-ui/blob/v3.11.0/internal/web/service/client_traffic.go) |
 | 逐入口重置 | 指定入口的 `ResetInboundTraffic` 清 up/down，controller 标记需要 Xray 重启；不是全 Client 重置，也不代替入口 setEnable | [Inbound service](https://github.com/MHSanaei/3x-ui/blob/v3.11.0/internal/web/service/inbound_traffic.go)、[controller](https://github.com/MHSanaei/3x-ui/blob/v3.11.0/internal/web/controller/inbound.go) |
 | 其他重置修复 | 上游新增/修正的 periodic、resetAll 恢复行为不等于本工具逐对象接口变化。本工具继续关闭内置周期，禁止 bulk/resetAll，保留 hold 策略 | [周期任务](https://github.com/MHSanaei/3x-ui/blob/v3.11.0/internal/web/job/periodic_traffic_reset_job.go)、[Client service](https://github.com/MHSanaei/3x-ui/blob/v3.11.0/internal/web/service/client_traffic.go) |
 | 请求与凭据 | Bearer Token 仍为 48 位；完整所需路由仍使用 admin scope。新增 node-admin 不代表获得本工具所需全部权限 | [Token service](https://github.com/MHSanaei/3x-ui/blob/v3.11.0/internal/web/service/panel/api_token.go)、[API controller](https://github.com/MHSanaei/3x-ui/blob/v3.11.0/internal/web/controller/api.go) |
 | 不确定写入 | 服务端存在串行写队列；客户端超时不证明服务端取消。写前落盘、单次发送、失败阻断的规则继续适用 | [traffic writer](https://github.com/MHSanaei/3x-ui/blob/v3.11.0/internal/web/service/traffic_writer.go) |
 
-因此新增独立版本登记，复用既有字段校验和执行状态机；未添加新 API、批量清零、自动改额或重试路径。本机版本守卫、包内示例和三版固定 fixture 同步更新；包成员继续使用 a2 可识别的路径。`host` 的版本字符串检查不证明安装包来源，现场仍需核对官方构建。
+a3 新增版本登记并复用执行状态机，但遗漏了 API 返回前的 GUID 注入。a4 修正该判断，并仅为非空来源增加一次 status GET；未新增写 API、批量清零、自动改额或重试路径。本机版本守卫、包内示例和三版固定 fixture 同步更新；包成员继续使用 a2 可识别的路径。`host` 的版本字符串检查不证明安装包来源，现场仍需核对官方构建。
+
+## 本次缺陷与修复边界
+
+实际回传显示 `nodeId` 缺失、`originNodeGuid` 为 36 字符非空字符串；a3 在首次配置生成时拒绝。该现象与上游 `annotateLocalOriginGuid` 一致，但仅凭长度不能证明现场 GUID 归属。a4 将在真实继续时读取 status 独立比对；本轮没有访问 VPS，真实比对与自动重置仍未验证。
+
+3.11.0 的非空来源要求规范小写、非零 UUID；status 的 `obj.panelGuid` 必须有效且相等。非空 nodeId 在 status 请求前拒绝；不同 GUID 报 `API_REMOTE_ORIGIN`，异常来源报 `API_ORIGIN_GUID`，缺失/无效本面板身份报 `API_PANEL_GUID`，读取失败保留原传输错误。错误均不重试，不能手工清字段、绕过检查或从入站复制 GUID 充作独立证明。
+
+3.7.0/3.10.2 行为不变。来源缺键或空字符串保持原规则，不增加 GET；3.11.0 非空来源每次快照增加一次 GET。身份不持久化到配置，不增加配置字段；写前和写后分别重新核对，不跨快照缓存。status 使用面板缓存状态，字段不可用时停止；不声称多 GET 是原子事务，也不以该检查代替人工计量拓扑确认。
+
+本地 a4 不覆盖任何旧包；没有公开下载地址。首次安装失败的用户应将 a4 解压至独立候选目录，并使用匹配 a4 的配置采集附件，沿用已填写的模板和凭据。既有受管部署仍需正常升级事务，不能覆盖活动代码。回退 a3 会重新出现此缺陷，不能把“旧包仍可读取历史”当作“3.11.0 自动化可恢复”。a2 不支持 3.11.0。
+
+## 首次安装任务枚举修正（a5）
+
+在未安装任何 vps-kit/旧重置任务的 Debian 13、systemd 257 环境中，带任务模式的 `list-unit-files` 返回空 stdout 和退出码 1，`list-units` 返回空 stdout 和退出码 0。a4 把前者作为 `HOST_COMMAND_FAILED` 拒绝，安装计划没有到达面板 GET。旧测试把两种空结果都模拟为退出码 0，遗漏了原生安装检查分支。
+
+a5 使用一次不带名称模式的 `systemctl list-unit-files --no-legend --no-pager --full`，仅在命令成功后按原来的三组任务模式本地筛选。所有 unit 类型均保留检查，不局限 timer/service；隐藏在普通系统任务后的未归属任务也必须拒绝。随后仍检查已加载任务，覆盖只加载但未安装的任务。无条件吞掉退出码 1、创建占位 unit 或失败后自动重试均未采用。
+
+全量已安装 unit 清单的 stdout 上限单独设为 256 KiB，其他主机命令仍为 32 KiB；保留进程超时、stderr 上限、输出超限拒绝和锁身份检查。每条非空已安装 unit 行应包含名称、状态及可选 preset，共 2/3 列；无法解析、非法编码、总线/权限等非零退出码仍停止。超限不截断后继续筛选，不能以部分清单证明无冲突。
+
+新回归通过真实 CLI 的 `deployment-plan → Deployment.plan → InstallationSystem.inspect → NativeSystem._foreign` 路径复现并修正，系统命令、主机身份、权限和面板使用显式替身；不把模型成功称为 Debian/systemd 验收。计划成功只保存暂停安装计划，不部署、不创建管理记录、不发送 POST。冲突或查询失败在面板读取前停止，不保存计划。
+
+对于已完成 a4 配置采集的用户，继续复用原 candidate、Token 和 attestations；只在独立目录准备 a5，并以 a5 包生成新的暂停安装计划。不必重建配置或再次创建确认文件。a5 不发布、不覆盖 a4；回退 a4 将恢复空匹配缺陷，回退 a3 还会恢复 GUID 缺陷。真实 VPS 上的 a5 计划与安装尚未验证。
 
 ## 升级与兼容边界
 

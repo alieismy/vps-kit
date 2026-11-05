@@ -1,6 +1,7 @@
 """已核对官方 tag 的显式读契约。不存在 POST、setEnable 或重置入口。"""
 from dataclasses import dataclass
 from enum import Enum
+import re
 from urllib.parse import quote
 
 from .config import EMAIL, VERSIONS
@@ -9,10 +10,14 @@ from .contracts import boolean, integer, json_load, require
 
 class ReadEndpoint(Enum):
     INBOUNDS = "inbounds"
+    STATUS = "status"
     CLIENT = "client"
     TRAFFIC = "traffic"
 
     def path(self, email=None):
+        if self is ReadEndpoint.STATUS:
+            require(email is None, "API_ROUTE_ARGUMENT")
+            return "/panel/api/server/status"
         if self is ReadEndpoint.INBOUNDS:
             require(email is None, "API_ROUTE_ARGUMENT")
             return "/panel/api/inbounds/list"
@@ -25,6 +30,18 @@ def unwrap(raw):
     d = json_load(raw)
     require(type(d) is dict and d.get("success") is True and "obj" in d, "API_ENVELOPE")
     return d["obj"]
+
+
+def snapshot_read_budget(config):
+    """3.11.0 可额外读取一次本面板身份；不增加重试或写请求。"""
+    return 1 + 2 * len(config.data["clients"]) + (config.data["panel"]["version"] == "3.11.0")
+
+
+def origin_guid(value):
+    # GetPanelGuid 使用规范 UUID；拒绝 null、其他类型、空白和非规范表示。
+    return type(value) is str and re.fullmatch(
+        r"[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}", value
+    ) is not None and value != "00000000-0000-0000-0000-000000000000"
 
 
 def used(d):
@@ -67,7 +84,7 @@ class Adapter:
                 require(False, "EMBEDDED_WEEKDAY_MIGRATION_UNVERIFIED")
             require(type(obj.get("resetWeekday")) is int and obj["resetWeekday"] == 0, "API_RESET_WEEKDAY")
 
-    def inbound(self, raw, config, expected_enable=None):
+    def inbound(self, raw, config, expected_enable=None, reader=None):
         d = config.data
         wanted = d["inbound"]
         all_inbounds = unwrap(raw)
@@ -80,10 +97,18 @@ class Adapter:
         i = matches[0]
         for k in ("remark", "listen", "port", "protocol"):
             require(type(i.get(k)) is type(wanted[k]) and i[k] == wanted[k], "API_INBOUND_BINDING")
-        # 已适配 tag 的 NodeID/OriginNodeGuid 均为 omitempty；缺键是明确的序列化行为。
-        # 只排除响应中可见的远程关联，不能单凭这两项证明整套本地计量拓扑。
+        # 3.11.0 的 GetInbounds 在序列化前为本机入站补 panelGuid。
+        # 不从入站本身推定本机身份；使用同一次快照中的本机 status 独立比对。
         require(i.get("nodeId") is None, "API_REMOTE_NODE")
-        require(i.get("originNodeGuid", "") == "", "API_REMOTE_ORIGIN")
+        origin = i.get("originNodeGuid", "")
+        if self.version == "3.11.0" and origin != "":
+            require(origin_guid(origin), "API_ORIGIN_GUID")
+            require(reader is not None, "API_LOCAL_ORIGIN_UNVERIFIED")
+            status = unwrap(reader.get(ReadEndpoint.STATUS))
+            require(type(status) is dict and origin_guid(status.get("panelGuid")), "API_PANEL_GUID")
+            require(origin == status["panelGuid"], "API_REMOTE_ORIGIN")
+        else:
+            require(origin == "", "API_REMOTE_ORIGIN")
         require(integer(i.get("total"), "API_INBOUND_QUOTA", 1) == wanted["quota_bytes"], "API_INBOUND_QUOTA_MISMATCH")
         require(type(i.get("expiryTime")) is int and i["expiryTime"] == 0 and i.get("trafficReset") == "never", "API_INBOUND_PERIOD")
         amount = used(i)

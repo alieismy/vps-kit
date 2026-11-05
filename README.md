@@ -7,7 +7,7 @@
 
 仓库包含 Python 源码、合成测试、离线打包工具和操作文档。它不安装或升级 3X-UI/Xray，不创建代理节点，也不修改服务商的流量账单；流量重置操作的对象是 **3X-UI 面板计数**。
 
-**当前版本：`0.5.0a3`，Alpha 预发布。** 本次新增官方 **3X-UI `3.11.0`** 适配，保留 `3.7.0`、`3.10.2`。源码核对和本地测试不代表真实面板写入、Linux/systemd 或生产业务验收完成。
+**当前源码版本：`0.5.0a5`，未发布的本地修复候选。** 修复首次安装时 systemd 空匹配被误判为主机命令失败的问题，并保留 a4 的 3X-UI `3.11.0` 本机来源 GUID 修复，保留 `3.7.0`、`3.10.2`；详见 [适配说明](doc/3x-ui-3.11.0-compatibility.md)。源码核对和本地测试不代表真实面板写入、Linux/systemd 或生产业务验收完成。
 
 ## 从哪里开始
 
@@ -21,6 +21,8 @@
 | 查完整参数 | `python -B bin/vps-kit traffic <动作> --help` | 只输出帮助；完整动作索引见 [CLI 参考](doc/cli.md) |
 
 ## 获取代码与运行条件
+
+`0.5.0a5` 尚无公开下载或 CI 结果，应使用经独立校验的候选包。以下是原发布包的历史入口；`0.5.0a3` 包含本机非空 `originNodeGuid` 被拒绝的已知缺陷，不应用于继续该失败场景。
 
 从 [v0.5.0a3 发布页](https://github.com/alieismy/vps-kit/releases/tag/v0.5.0a3)下载带 manifest 的 [ZIP](https://github.com/alieismy/vps-kit/releases/download/v0.5.0a3/vps-kit-0.5.0a3.zip) 和 [SHA256](https://github.com/alieismy/vps-kit/releases/download/v0.5.0a3/vps-kit-0.5.0a3.zip.sha256)，核对摘要后解压运行。历史 `v0.5.0a2` 附件保持原样，不包含此次 `3.11.0` 适配。GitHub 的 `Source code` 归档与带 manifest 的开发包不同。
 
@@ -49,7 +51,7 @@ python -B bin/vps-kit traffic calendar --config doc/fixtures/3.11.0/config.json
 python -B bin/vps-kit traffic units --config doc/fixtures/3.11.0/config.json
 ```
 
-这些命令不读真实凭据、不发送 HTTP、不修改 timer/service；`units` 只输出 unit 文本。预期依次可见 `0.5.0a3`、帮助、`CONFIG_VALID`、`READ_CONTRACT_PASS`、`STATE_CONTRACT_VALID`、日历预览和 unit 文本。合成发现应标记 `evidence_mode=SYNTHETIC`、`http_calls=0`、`read_calls=5`。样例账本的“已完成”仅是测试数据。
+这些命令不读真实凭据、不发送 HTTP、不修改 timer/service；`units` 只输出 unit 文本。预期依次可见 `0.5.0a5`、帮助、`CONFIG_VALID`、`READ_CONTRACT_PASS`、`STATE_CONTRACT_VALID`、日历预览和 unit 文本。合成发现应标记 `evidence_mode=SYNTHETIC`、`http_calls=0`、`read_calls=5`。样例账本的“已完成”仅是测试数据。
 
 ### 支持什么
 
@@ -140,8 +142,8 @@ python -B bin/vps-kit traffic package-verify --help
 如需生成离线包，在仓库根目录执行下列命令，输出文件必须尚不存在；将构建输出的 `sha256` 值代入校验命令。包内同时包含三版本合成示例，不能直接当作生产配置：
 
 ```powershell
-python -B bin/vps-kit traffic package-build --source . --output vps-kit-0.5.0a3.zip
-python -B bin/vps-kit traffic package-verify --package vps-kit-0.5.0a3.zip --expect-sha256 '<构建输出的sha256>'
+python -B bin/vps-kit traffic package-build --source . --output vps-kit-0.5.0a5.zip
+python -B bin/vps-kit traffic package-verify --package vps-kit-0.5.0a5.zip --expect-sha256 '<构建输出的sha256>'
 ```
 
 | 目录 | 内容 |

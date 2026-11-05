@@ -2,6 +2,20 @@
 
 本文件记录面向使用者的版本变化及发布状态。测试结果只对实际运行时对应的源码和环境有效。
 
+## 0.5.0a5 — 本地修复候选，未发布，2026-11-05
+
+- 修复新装系统没有匹配任务时 `list-unit-files` 返回 1 被误报 `HOST_COMMAND_FAILED` 的问题：无模式枚举成功后本地筛选原任务命名空间，保留已加载任务检查。
+- 查询非零退出、超时、非法编码、超限或异常行仍失败；所有相关 unit 类型的冲突继续拒绝，不创建占位 unit、不重试、不放宽通用退出码判断。
+- 全量已安装 unit 查询的 stdout 上限单独设为 256 KiB，其他命令保持原上限。补充原生检查、完整首次安装计划调用链、任务冲突、查询失败及大清单末尾冲突回归。
+- 保留 a4 的 GUID 修复和原包；配置、Token、人工确认、配额、网络及账期继续复用。尚未发布或进行 VPS 安装验收。
+
+## 0.5.0a4 — 本地修复候选，未发布，2026-11-05
+
+- 修复 3.11.0 `GetInbounds` 读取时补入本机 `originNodeGuid` 后被误报 `API_REMOTE_ORIGIN` 的适配缺陷。a3 的模型字段检查遗漏了服务层返回加工；原 a3 发布包保留不变。
+- 非空来源必须与同一回环面板 `/server/status` 的 `panelGuid` 一致；远程 nodeId、不同 GUID、异常类型、无效身份及请求失败继续拒绝。每份快照最多增加一次 GET，无自动重试或新增 POST。
+- 发现和执行器共用来源判断及读取预算，补充初始化、写前身份变化、旧版兼容和 HTTP 回环回归。配置 schema、配额、网络、账期及历史格式保持不变。
+- 本地候选不代表已发布或现场验收。候选的本地验证记录另行交付；没有运行 GitHub CI，没有操作 VPS。
+
 ## 0.5.0a3 — 预发布，2026-11-04
 
 发布类型为 Alpha 开发版，标签 `v0.5.0a3`。来源提交、CI 与附件摘要见 [Release 与发布说明](https://github.com/alieismy/vps-kit/releases/tag/v0.5.0a3)；下载 [开发包 ZIP](https://github.com/alieismy/vps-kit/releases/download/v0.5.0a3/vps-kit-0.5.0a3.zip) 和 [SHA256 摘要](https://github.com/alieismy/vps-kit/releases/download/v0.5.0a3/vps-kit-0.5.0a3.zip.sha256)。

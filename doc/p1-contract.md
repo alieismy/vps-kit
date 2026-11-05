@@ -1,5 +1,7 @@
 # P1 配置、状态与精确版本适配契约
 
+2026-11-05 修正：`0.5.0a4` 为未发布的本地候选，修复 3.11.0 本机入站 GUID 注入被误拒绝的问题；必要时增加一次本机 status GET，配置、配额、调度、POST 和历史格式不变。详见 [适配说明](3x-ui-3.11.0-compatibility.md)。
+
 2026-11-04 补充：`0.5.0a3` 新增官方 `3.11.0`，保留旧版兼容。新增来源和运行边界见 [适配说明](3x-ui-3.11.0-compatibility.md)，历史评审不改写为三版验收。
 
 当前扩展 `0.4.0a2` 的配置 v2 与固定周期见 [E1 契约](vmrack-contract.md)。本文件的 v1 配置与原有字段规则保留，旧历史不补写 `kind` 或重算摘要。
@@ -16,7 +18,7 @@
 | `traffic/state.py` | 账本＋产生时配置 → 记录分类 | 绑定、顺序、证据结构和跳过理由；无执行、无修复 |
 | `traffic/panel.py` | 版本及 API JSON → 已校验表示 | 精确版本差异、对象集合、关联、周期、额度、双态启用 |
 | `traffic/panel_http.py` | 固定 GET 枚举＋受保护凭据 → 有界字节串 | 仅本机，调用预算，无重试、代理、重定向或 TLS 降级 |
-| `traffic/discovery.py` | 配置＋读取器 → 脱敏报告 | 首错停止，成功预算 `1+2N`，不写回配置 |
+| `traffic/discovery.py` | 配置＋读取器 → 脱敏报告 | 首错停止，成功预算最多 `2+2N`（3.11.0；旧版 `1+2N`），不写回配置 |
 | `traffic/host.py` | 固定本机路径/命令 → 环境摘要 | 只读，已知 unit 清单不等于完整任务扫描 |
 | `cli.py` | 参数 → JSON stdout 与退出码 | 最小动作集；错误不回显参数、URL、Token 或原始 API 响应 |
 
@@ -80,15 +82,16 @@
 
 ## 3. 精确版本 API 读取
 
-`ReadEndpoint` 仅提供三个 GET：
+`ReadEndpoint` 提供下列对象 GET，以及 3.11.0 非空来源 GUID 校验专用的 `GET /panel/api/server/status`：
 
 | 枚举 | 追加到 panel base URL 的路径 |
 |---|---|
 | INBOUNDS | `/panel/api/inbounds/list` |
+| STATUS | `/panel/api/server/status`（仅 3.11.0 非空来源核验） |
 | CLIENT | `/panel/api/clients/get/{encoded-email}` |
 | TRAFFIC | `/panel/api/clients/traffic/{encoded-email}` |
 
-每份响应要求 HTTP 200、JSON 对象、`success` 严格等于布尔 true、存在 `obj`。数组/对象结构错误、字段漂移、API 错误都停止；不显示服务端 msg。列表按配置中的数值 ID 找入口，再核对 Remark/listen/port/protocol；重复 ID、目标缺失均失败。三个已适配 tag 的 `NodeID *int` 具有 `json:"nodeId,omitempty"`，因此只接受缺键或 null；非 null 值一律拒绝。`originNodeGuid` 只允许缺键或空字符串，非空远程来源及错误类型拒绝。完整内嵌 Client 集合精确匹配，不能自动纳入新成员。这项字段兼容依据已核对模型的序列化定义，不放宽 3.10.2/3.11.0 的 resetWeekday 迁移证据要求。
+每份响应要求 HTTP 200、JSON 对象、`success` 严格等于布尔 true、存在 `obj`。数组/对象结构错误、字段漂移、API 错误都停止；不显示服务端 msg。列表按配置中的数值 ID 找入口，再核对 Remark/listen/port/protocol；重复 ID、目标缺失均失败。三个已适配 tag 的 `NodeID *int` 具有 `json:"nodeId,omitempty"`，因此只接受缺键或 null；非 null 值一律拒绝。`originNodeGuid` 缺键或空字符串沿用接受；3.7.0/3.10.2 仍拒绝所有非空来源。3.11.0 对非空来源先验证规范小写、非零 UUID，再通过同一凭据和回环连接读取一次 `/panel/api/server/status`，要求 `obj.panelGuid` 为同样的 UUID 且与来源完全一致。字段异常、status 读取失败或 GUID 不同均停止，不重试、不回退到信任入站字段。完整内嵌 Client 集合精确匹配，不能自动纳入新成员。这项字段兼容依据已核对的模型、GetInbounds 注入逻辑与 status 身份来源，不放宽 3.10.2/3.11.0 的 resetWeekday 迁移证据要求。
 
 API 中无关扩展字段允许存在并忽略；影响身份、额度、周期和启用状态的已知字段严格校验。settings 接受 JSON 对象或可严格解析的 JSON 文本。Client 详情必须先通过校验，才读取该 Client 的 traffic。
 
@@ -115,7 +118,7 @@ enable 分成配置态和 traffic 态，均必须是显式 bool；traffic 的缺
 
 curl 固定路径 `/usr/bin/curl`，首参数 `-q` 禁用个人 curlrc，关闭 URL globbing；禁止代理、重定向、自动重试、TLS 跳过验证及备用地址。连接 3 秒、请求 10 秒、外部进程等待 12 秒；响应体最多 2 MiB，stderr 最多 8 KiB 且不显示。超限/超时杀掉本地读取进程并失败，不重发；Ctrl+C 同样先结束并回收子进程、关闭管道，再返回中断结果。GET 成功不证明 admin scope，报告始终保留 `token_admin_scope=NOT_PROVEN`。
 
-完整成功读取为 `1+2N` 次，两个 Client 为 5 次，16 个为 33 次；遇错立即停止。fixture 模式记录逻辑 read_calls，但 `http_calls=0`。返回值无 Token/URL/UUID 和原始 API 对象。各 GET 之间可能有正常计数增长或并发编辑，报告不是原子快照；它不能用于跳过未来写前复核。`script_writes=0` 指本工具不主动持久化配置、报告、锁或账本，不保证 OS 文件访问时间、系统审计或面板日志/缓存完全不变。
+对象读取为 `1+2N` 次；3.11.0 的目标入站包含非空来源 GUID 时再读取一次 status，即 `2+2N` 次。两个 Client 为 5/6 次，16 个为 33/34 次；遇错立即停止。`read_budget` 对 3.11.0 报告上限 `2+2N`，旧版仍为 `1+2N`。fixture 模式记录逻辑 read_calls，但 `http_calls=0`。返回值无 Token/URL/UUID 和原始 API 对象。各 GET 之间可能有正常计数增长或并发编辑，报告不是原子快照；它不能用于跳过未来写前复核。`script_writes=0` 指本工具不主动持久化配置、报告、锁或账本，不保证 OS 文件访问时间、系统审计或面板日志/缓存完全不变。
 
 `--local` 只使用本机回环；已用替身校验 argv 和调用预算，并用独立的本地 HTTP 服务验证实际 curl 的三版本合成读取、目标固定及重定向拒绝。未做真实 TLS、IPv6、Linux systemd/权限或 3X-UI 实例集成。回环验证入口为 [tests/loopback_transport.py](../tests/loopback_transport.py)，不属于禁止联网的单元测试入口。
 

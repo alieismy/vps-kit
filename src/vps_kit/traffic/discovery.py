@@ -1,6 +1,6 @@
-"""1+2N GET 的只读快照，不把快照核对当作调度或写权限验收。"""
+"""有界 GET 只读快照，不把快照核对当作调度或写权限验收。"""
 from .contracts import canonical, fields, require
-from .panel import ReadEndpoint, get_adapter
+from .panel import ReadEndpoint, get_adapter, snapshot_read_budget
 
 
 class FixtureReader:
@@ -10,7 +10,9 @@ class FixtureReader:
         expected = [ReadEndpoint.INBOUNDS.path()]
         for c in config.data["clients"]:
             expected += [ReadEndpoint.CLIENT.path(c["email"]), ReadEndpoint.TRAFFIC.path(c["email"])]
-        require(type(fixture["responses"]) is dict and set(fixture["responses"]) == set(expected), "FIXTURE_ROUTES")
+        routes = set(expected)
+        allowed_routes = routes | ({ReadEndpoint.STATUS.path()} if config.data["panel"]["version"] == "3.11.0" else set())
+        require(type(fixture["responses"]) is dict and routes <= set(fixture["responses"]) <= allowed_routes, "FIXTURE_ROUTES")
         self.responses = fixture["responses"]
         self.paths = []
         self.attempts = 0
@@ -28,7 +30,7 @@ def discover(config, reader, evidence_mode):
     require(evidence_mode in ("SYNTHETIC", "LOCAL_LIVE_GET"), "DISCOVERY_MODE")
     d = config.data
     adapter = get_adapter(d["panel"]["version"])
-    embedded, inbound = adapter.inbound(reader.get(ReadEndpoint.INBOUNDS), config)
+    embedded, inbound = adapter.inbound(reader.get(ReadEndpoint.INBOUNDS), config, reader=reader)
     results = []
     for index, client in enumerate(d["clients"], 1):
         detail = reader.get(ReadEndpoint.CLIENT, client["email"])
@@ -38,7 +40,7 @@ def discover(config, reader, evidence_mode):
         results.append({"index": index, **result})
     return {"result": "READ_CONTRACT_PASS", "evidence_mode": evidence_mode,
             "panel_version": adapter.version, "inbound": inbound, "clients": results,
-            "read_calls": reader.attempts, "read_budget": 1 + 2 * len(d["clients"]),
+            "read_calls": reader.attempts, "read_budget": snapshot_read_budget(config),
             "http_calls": 0 if evidence_mode == "SYNTHETIC" else reader.attempts,
             "methods": ["GET"], "retries": 0, "script_writes": 0,
             "token_admin_scope": "NOT_PROVEN", "topology_provenance": "MANUAL_REVIEW_REQUIRED",

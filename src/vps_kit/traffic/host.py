@@ -13,8 +13,8 @@ PROPERTIES = ("LoadState", "ActiveState", "SubState", "UnitFileState", "MainPID"
               "NextElapseUSecRealtime", "Persistent", "Job")
 
 
-def command(args, execute=bounded_process):
-    result = execute(args, limit=32768)
+def command(args, execute=bounded_process, *, limit=32768):
+    result = execute(args, limit=limit)
     require(result.returncode == 0, "HOST_COMMAND_FAILED")
     try:
         return result.stdout.decode("utf-8").strip()
