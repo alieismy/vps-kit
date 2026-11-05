@@ -13,3 +13,5 @@ bin/vps-kit text eol=lf
 tests/traffic/fixtures/SHA256SUMS text eol=lf
 # 批准基线保留原始字节及其既有 SHA256，不转换换行。
 doc/vps-traffic-reset-tool-proposal.md -text
+# 固定 a6 配套脚本保留发布原字节，避免检出后改变归档摘要。
+tools/manual_support/payload/prepare-config.py -text whitespace=blank-at-eol,blank-at-eof,space-before-tab,cr-at-eol

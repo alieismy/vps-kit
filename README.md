@@ -28,6 +28,8 @@
 
 运行期 Python 代码仅使用标准库，无需 `pip install`；当前未注册 pip console script。以下命令均在源码根目录执行，Linux 将 `python` 换成 `python3`。
 
+使用 VMISS/VMRack 首次安装手册配套附件时，下载独立的 [v0.5.0a6-support-r1 配套修订](https://github.com/alieismy/vps-kit/releases/tag/v0.5.0a6-support-r1)。它修复外层 tar 权限，内含原字节 a6 程序 ZIP；程序版本未变，已受管部署不因此重装或重复启用。配套标签不作为程序升级版本。
+
 | 用途 | 环境要求 |
 |---|---|
 | 离线配置、日历、合成测试 | Python 3.11+ 和可供 `zoneinfo` 使用的 IANA 时区数据；Windows 也可运行 |
